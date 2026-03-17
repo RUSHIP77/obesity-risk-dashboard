@@ -1,21 +1,70 @@
 import matplotlib
 matplotlib.use('Agg')
 import dash
-from dash import dcc, html, Input, Output, State, dash_table, callback_context
+from dash import dcc, html, Input, Output, State, dash_table
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import plotly.graph_objects as go
+import plotly.io as pio
 import pandas as pd
 import numpy as np
 import joblib
 import os
 
 # ============================================================
-# Load All Models and Data
+# Paths
 # ============================================================
 BASE = os.path.dirname(os.path.abspath(__file__))
 PROJECT = os.path.dirname(BASE)
 
+# ============================================================
+# Custom Plotly Template
+# ============================================================
+CHART_COLORS = ["#3B9AE8", "#2DD4BF", "#FBBF24", "#A78BFA",
+                "#34D399", "#F472B6", "#FB923C", "#94A3B8"]
+
+pio.templates["health_dark"] = go.layout.Template(
+    layout=go.Layout(
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(family="Inter, sans-serif", size=13, color="#94A3B8"),
+        title=dict(font=dict(family="Manrope, sans-serif", size=17,
+                              color="#F1F5F9"), x=0, xanchor="left",
+                   pad=dict(l=4, t=4)),
+        xaxis=dict(
+            gridcolor="rgba(42,47,69,0.5)", gridwidth=1, griddash="dot",
+            zeroline=False, linecolor="#2A2F45", linewidth=1,
+            tickfont=dict(size=11, color="#64748B"),
+            title_font=dict(size=13, color="#94A3B8"),
+        ),
+        yaxis=dict(
+            gridcolor="rgba(42,47,69,0.5)", gridwidth=1, griddash="dot",
+            zeroline=False, linecolor="#2A2F45", linewidth=1,
+            tickfont=dict(size=11, color="#64748B"),
+            title_font=dict(size=13, color="#94A3B8"),
+        ),
+        colorway=CHART_COLORS,
+        legend=dict(
+            bgcolor="rgba(0,0,0,0)", borderwidth=0,
+            font=dict(size=11, color="#94A3B8"),
+        ),
+        hoverlabel=dict(
+            bgcolor="#1E2235", bordercolor="#2A2F45",
+            font=dict(family="Inter, sans-serif", size=13, color="#F1F5F9"),
+        ),
+        margin=dict(l=48, r=16, t=56, b=48),
+    ),
+    data=dict(
+        bar=[go.Bar(marker=dict(cornerradius=4, line=dict(width=0)))],
+        scatter=[go.Scatter(marker=dict(size=8, line=dict(width=1, color="#0F1117")))],
+    ),
+)
+pio.templates.default = "health_dark"
+CHART_CONFIG = {"displayModeBar": False, "scrollZoom": False, "responsive": True}
+
+# ============================================================
+# Load Models & Data
+# ============================================================
 dt_model = joblib.load(os.path.join(PROJECT, 'outputs/models/decision_tree_model.pkl'))
 knn_model = joblib.load(os.path.join(PROJECT, 'outputs/models/knn_model.pkl'))
 lr_model = joblib.load(os.path.join(PROJECT, 'outputs/models/linear_regression_model.pkl'))
@@ -41,145 +90,176 @@ OBESITY_ORDER = ['Insufficient_Weight', 'Normal_Weight', 'Overweight_Level_I',
                  'Overweight_Level_II', 'Obesity_Type_I', 'Obesity_Type_II', 'Obesity_Type_III']
 
 OBESITY_COLORS = {
-    'Insufficient_Weight': '#2196F3', 'Normal_Weight': '#4CAF50',
-    'Overweight_Level_I': '#FFC107', 'Overweight_Level_II': '#FF9800',
-    'Obesity_Type_I': '#FF5722', 'Obesity_Type_II': '#F44336',
-    'Obesity_Type_III': '#B71C1C'
+    'Insufficient_Weight': '#60A5FA', 'Normal_Weight': '#34D399',
+    'Overweight_Level_I': '#FBBF24', 'Overweight_Level_II': '#FB923C',
+    'Obesity_Type_I': '#F87171', 'Obesity_Type_II': '#EF4444',
+    'Obesity_Type_III': '#DC2626'
 }
 
-RISK_BADGE_COLORS = {
-    'Insufficient_Weight': 'info', 'Normal_Weight': 'success',
-    'Overweight_Level_I': 'warning', 'Overweight_Level_II': 'warning',
-    'Obesity_Type_I': 'danger', 'Obesity_Type_II': 'danger',
-    'Obesity_Type_III': 'danger'
+RISK_CSS = {
+    'Insufficient_Weight': 'risk-low', 'Normal_Weight': 'risk-low',
+    'Overweight_Level_I': 'risk-moderate', 'Overweight_Level_II': 'risk-moderate',
+    'Obesity_Type_I': 'risk-high', 'Obesity_Type_II': 'risk-critical',
+    'Obesity_Type_III': 'risk-critical'
 }
 
 # ============================================================
 # App Setup
 # ============================================================
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.FLATLY],
-                suppress_callback_exceptions=True)
+app = dash.Dash(
+    __name__,
+    external_stylesheets=[
+        dbc.themes.DARKLY,
+        "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap"
+    ],
+    suppress_callback_exceptions=True
+)
 app.title = "Childhood Obesity Risk Screening Dashboard"
 
 # ============================================================
 # Tab 1: Overview
 # ============================================================
 avg_bmi = df['BMI'].mean()
+obesity_most = df['NObeyesdad'].value_counts().idxmax()
+fh_pct = (df['family_history_with_overweight'] == 'yes').mean() * 100
 
-kpi_cards = dbc.Row([
-    dbc.Col(dbc.Card([
-        dbc.CardBody([
-            html.H4("2,111", className="card-title text-primary", style={"fontSize": "2rem"}),
-            html.P("Total Records", className="card-text text-muted")
-        ])
-    ], className="text-center shadow-sm"), md=3),
-    dbc.Col(dbc.Card([
-        dbc.CardBody([
-            html.H4("17", className="card-title text-success", style={"fontSize": "2rem"}),
-            html.P("Features", className="card-text text-muted")
-        ])
-    ], className="text-center shadow-sm"), md=3),
-    dbc.Col(dbc.Card([
-        dbc.CardBody([
-            html.H4("7", className="card-title text-warning", style={"fontSize": "2rem"}),
-            html.P("Obesity Classes", className="card-text text-muted")
-        ])
-    ], className="text-center shadow-sm"), md=3),
-    dbc.Col(dbc.Card([
-        dbc.CardBody([
-            html.H4(f"{avg_bmi:.1f}", className="card-title text-danger", style={"fontSize": "2rem"}),
-            html.P("Avg BMI", className="card-text text-muted")
-        ])
-    ], className="text-center shadow-sm"), md=3),
-], className="mb-4")
+kpi_row = dbc.Row([
+    dbc.Col(html.Div([
+        html.Div("📊", className="kpi-icon blue"),
+        html.Div("2,111", className="kpi-value"),
+        html.Div("Total Records", className="kpi-label"),
+    ], className="kpi-card fade-in-d1"), xs=6, md=3),
+    dbc.Col(html.Div([
+        html.Div("🔬", className="kpi-icon teal"),
+        html.Div("17", className="kpi-value"),
+        html.Div("Features", className="kpi-label"),
+    ], className="kpi-card fade-in-d2"), xs=6, md=3),
+    dbc.Col(html.Div([
+        html.Div("📈", className="kpi-icon amber"),
+        html.Div("7", className="kpi-value"),
+        html.Div("Obesity Classes", className="kpi-label"),
+    ], className="kpi-card fade-in-d3"), xs=6, md=3),
+    dbc.Col(html.Div([
+        html.Div("⚖️", className="kpi-icon red"),
+        html.Div(f"{avg_bmi:.1f}", className="kpi-value"),
+        html.Div("Average BMI", className="kpi-label"),
+    ], className="kpi-card fade-in-d4"), xs=6, md=3),
+], className="g-3 mb-4")
 
-# Pie chart
+# Donut chart
 counts = df['NObeyesdad'].value_counts().reindex(OBESITY_ORDER)
-fig_pie = px.pie(values=counts.values, names=counts.index,
-                 color=counts.index, color_discrete_map=OBESITY_COLORS,
-                 title="Obesity Level Distribution")
+fig_donut = go.Figure(data=[go.Pie(
+    labels=[c.replace('_', ' ') for c in counts.index],
+    values=counts.values, hole=0.55,
+    marker=dict(colors=[OBESITY_COLORS[c] for c in counts.index],
+                line=dict(color='#0F1117', width=2)),
+    textinfo='percent', textfont=dict(size=12, color='#F1F5F9'),
+    hovertemplate='<b>%{label}</b><br>Count: %{value}<br>Share: %{percent}<extra></extra>',
+)])
+fig_donut.add_annotation(text=f"<b>Total</b><br>{len(df):,}",
+                          font=dict(size=16, color="#F1F5F9", family="Manrope"),
+                          showarrow=False)
+fig_donut.update_layout(title="Obesity Level Distribution", height=420,
+                         legend=dict(font=dict(size=11)))
 
-# BMI histogram
-fig_bmi_hist = px.histogram(df, x='BMI', color='NObeyesdad',
-                             category_orders={'NObeyesdad': OBESITY_ORDER},
-                             color_discrete_map=OBESITY_COLORS,
-                             title="BMI Distribution by Obesity Level",
-                             nbins=50)
+# BMI Histogram
+fig_bmi = px.histogram(df, x='BMI', color='NObeyesdad',
+                        category_orders={'NObeyesdad': OBESITY_ORDER},
+                        color_discrete_map=OBESITY_COLORS,
+                        title="BMI Distribution by Obesity Level", nbins=50)
+fig_bmi.update_layout(height=420, legend_title_text="",
+                       legend=dict(font=dict(size=10)),
+                       xaxis_title="BMI (kg/m²)", yaxis_title="Count")
 
-tab1_content = dbc.Container([
-    html.Br(),
-    html.P("This dashboard presents results from a machine learning analysis of 2,111 individual records "
-           "examining the relationship between lifestyle factors and obesity levels. The data comes from survey "
-           "responses in Colombia, Peru, and Mexico, augmented with synthetic records via SMOTE.",
-           className="text-muted"),
-    kpi_cards,
+tab1 = dbc.Container([
+    html.Div(style={"height": "16px"}),
+    html.P("Machine learning analysis of 2,111 records examining lifestyle factors and obesity levels. "
+           "Data from Colombia, Peru, and Mexico, augmented with synthetic records via SMOTE.",
+           className="section-subtitle"),
+    kpi_row,
     dbc.Row([
-        dbc.Col(dcc.Graph(figure=fig_pie), md=6),
-        dbc.Col(dcc.Graph(figure=fig_bmi_hist), md=6),
-    ])
+        dbc.Col(html.Div([
+            dcc.Graph(figure=fig_donut, config=CHART_CONFIG)
+        ], className="chart-container"), md=6),
+        dbc.Col(html.Div([
+            dcc.Graph(figure=fig_bmi, config=CHART_CONFIG)
+        ], className="chart-container"), md=6),
+    ], className="g-3"),
 ], fluid=True)
 
 # ============================================================
 # Tab 2: Risk Factor Explorer
 # ============================================================
 numeric_features = ['Age', 'Height', 'Weight', 'FCVC', 'NCP', 'CH2O', 'FAF', 'TUE', 'BMI']
-all_features = numeric_features + ['Gender', 'family_history_with_overweight', 'FAVC', 'CAEC', 'SMOKE', 'SCC', 'CALC', 'MTRANS']
 
-tab2_content = dbc.Container([
-    html.Br(),
+# Feature importance
+feat_imp_df = pd.DataFrame({
+    'Feature': feature_names_cls, 'Importance': dt_model.feature_importances_
+}).sort_values('Importance', ascending=True).tail(12)
+
+fig_feat_imp = go.Figure(go.Bar(
+    y=feat_imp_df['Feature'], x=feat_imp_df['Importance'],
+    orientation='h',
+    marker=dict(
+        color=feat_imp_df['Importance'],
+        colorscale=[[0, '#1A3A5C'], [1, '#3B9AE8']],
+        cornerradius=6
+    ),
+))
+fig_feat_imp.update_layout(title="Decision Tree — Feature Importance (Top 12)",
+                            height=450, showlegend=False,
+                            xaxis_title="Importance Score")
+
+# Correlation heatmap
+corr_vals = df[numeric_features].corr().values
+fig_corr = go.Figure(go.Heatmap(
+    z=corr_vals, x=numeric_features, y=numeric_features,
+    colorscale=[[0, "#F87171"], [0.5, "#1E2235"], [1, "#3B9AE8"]],
+    zmid=0,
+    text=np.round(corr_vals, 2), texttemplate='%{text}',
+    textfont={"size": 10, "color": "#F1F5F9"},
+    xgap=2, ygap=2, showscale=True,
+    colorbar=dict(tickfont=dict(color="#64748B")),
+))
+fig_corr.update_layout(title="Feature Correlation Heatmap", height=450)
+
+tab2 = dbc.Container([
+    html.Div(style={"height": "16px"}),
     dbc.Row([
-        dbc.Col([
-            html.H5("Feature Distribution by Obesity Level"),
-            dcc.Dropdown(id='feature-select', options=[{'label': f, 'value': f} for f in numeric_features],
-                         value='BMI', clearable=False),
-            dcc.Graph(id='feature-dist-graph')
-        ], md=6),
-        dbc.Col([
-            html.H5("Scatter Plot Builder"),
+        dbc.Col(html.Div([
+            html.Div("Feature Distribution by Obesity Level", className="chart-title"),
+            dcc.Dropdown(id='feature-select',
+                         options=[{'label': f, 'value': f} for f in numeric_features],
+                         value='BMI', clearable=False,
+                         style={"marginBottom": "12px"}),
+            dcc.Graph(id='feature-dist-graph', config=CHART_CONFIG)
+        ], className="chart-container"), md=6),
+        dbc.Col(html.Div([
+            html.Div("Scatter Plot Builder", className="chart-title"),
             dbc.Row([
-                dbc.Col(dcc.Dropdown(id='scatter-x', options=[{'label': f, 'value': f} for f in numeric_features],
-                                      value='Age', clearable=False), md=6),
-                dbc.Col(dcc.Dropdown(id='scatter-y', options=[{'label': f, 'value': f} for f in numeric_features],
-                                      value='Weight', clearable=False), md=6),
-            ]),
-            dcc.Graph(id='scatter-graph')
-        ], md=6),
-    ]),
+                dbc.Col(dcc.Dropdown(id='scatter-x',
+                    options=[{'label': f, 'value': f} for f in numeric_features],
+                    value='Age', clearable=False), md=6),
+                dbc.Col(dcc.Dropdown(id='scatter-y',
+                    options=[{'label': f, 'value': f} for f in numeric_features],
+                    value='Weight', clearable=False), md=6),
+            ], style={"marginBottom": "12px"}),
+            dcc.Graph(id='scatter-graph', config=CHART_CONFIG)
+        ], className="chart-container"), md=6),
+    ], className="g-3 mb-3"),
     dbc.Row([
-        dbc.Col([
-            html.H5("Feature Importance (Decision Tree)"),
-            dcc.Graph(id='feat-imp-graph', figure=go.Figure(
-                go.Bar(
-                    y=feature_names_cls,
-                    x=dt_model.feature_importances_,
-                    orientation='h',
-                    marker_color='#2196F3'
-                )
-            ).update_layout(
-                title="Decision Tree Feature Importance",
-                yaxis={'categoryorder': 'total ascending'},
-                height=500
-            ))
-        ], md=6),
-        dbc.Col([
-            html.H5("Correlation Heatmap"),
-            dcc.Graph(id='corr-heatmap', figure=go.Figure(
-                go.Heatmap(
-                    z=df[numeric_features].corr().values,
-                    x=numeric_features, y=numeric_features,
-                    colorscale='RdBu_r', zmid=0,
-                    text=np.round(df[numeric_features].corr().values, 2),
-                    texttemplate='%{text}', textfont={"size": 9}
-                )
-            ).update_layout(title="Feature Correlation Heatmap", height=500))
-        ], md=6),
-    ])
+        dbc.Col(html.Div([
+            dcc.Graph(figure=fig_feat_imp, config=CHART_CONFIG)
+        ], className="chart-container"), md=6),
+        dbc.Col(html.Div([
+            dcc.Graph(figure=fig_corr, config=CHART_CONFIG)
+        ], className="chart-container"), md=6),
+    ], className="g-3"),
 ], fluid=True)
 
 # ============================================================
 # Tab 3: Model Results
 # ============================================================
-# Read metrics
 with open(os.path.join(PROJECT, 'outputs/data/regression_metrics.txt'), 'r') as f:
     reg_metrics_text = f.read()
 with open(os.path.join(PROJECT, 'outputs/data/dt_metrics.txt'), 'r') as f:
@@ -189,81 +269,93 @@ with open(os.path.join(PROJECT, 'outputs/data/knn_metrics.txt'), 'r') as f:
 
 model_comparison_df = pd.read_csv(os.path.join(PROJECT, 'outputs/data/model_comparison.csv'))
 
-# Regression coefficient chart
+# Regression coefficients
 coef_df = pd.DataFrame({
-    'Feature': feature_names_reg,
-    'Coefficient': lr_model.coef_
+    'Feature': feature_names_reg, 'Coefficient': lr_model.coef_
 }).sort_values('Coefficient')
-
 fig_coef = go.Figure(go.Bar(
-    y=coef_df['Feature'], x=coef_df['Coefficient'],
-    orientation='h',
-    marker_color=['#F44336' if c < 0 else '#2196F3' for c in coef_df['Coefficient']]
+    y=coef_df['Feature'], x=coef_df['Coefficient'], orientation='h',
+    marker=dict(
+        color=['#F87171' if c < 0 else '#3B9AE8' for c in coef_df['Coefficient']],
+        cornerradius=6
+    ),
 ))
-fig_coef.update_layout(title="Linear Regression Coefficients — Predicting BMI", height=450)
+fig_coef.update_layout(title="Linear Regression Coefficients — Predicting BMI", height=420)
 
-# DT confusion matrix
+# Confusion matrices
 from sklearn.metrics import confusion_matrix
 X_test_cls = joblib.load(os.path.join(PROJECT, 'outputs/data/classification_splits.pkl'))[1]
 y_test_cls = joblib.load(os.path.join(PROJECT, 'outputs/data/classification_splits.pkl'))[3]
-y_pred_dt = dt_model.predict(X_test_cls)
-cm_dt = confusion_matrix(y_test_cls, y_pred_dt)
-
-fig_cm_dt = go.Figure(go.Heatmap(
-    z=cm_dt, x=OBESITY_ORDER, y=OBESITY_ORDER,
-    colorscale='Blues', text=cm_dt, texttemplate='%{text}',
-    textfont={"size": 12}
-))
-fig_cm_dt.update_layout(title="Decision Tree — Confusion Matrix",
-                         xaxis_title="Predicted", yaxis_title="Actual", height=500)
-
-# KNN confusion matrix
 X_test_cls_scaled = joblib.load(os.path.join(PROJECT, 'outputs/data/classification_splits_scaled.pkl'))[1]
-y_pred_knn = knn_model.predict(X_test_cls_scaled)
-cm_knn = confusion_matrix(y_test_cls, y_pred_knn)
 
-fig_cm_knn = go.Figure(go.Heatmap(
-    z=cm_knn, x=OBESITY_ORDER, y=OBESITY_ORDER,
-    colorscale='Blues', text=cm_knn, texttemplate='%{text}',
-    textfont={"size": 12}
+labels_short = [c.replace('_', ' ').replace('Level ', 'L').replace('Type ', 'T') for c in OBESITY_ORDER]
+
+cm_dt = confusion_matrix(y_test_cls, dt_model.predict(X_test_cls))
+fig_cm_dt = go.Figure(go.Heatmap(
+    z=cm_dt, x=labels_short, y=labels_short,
+    colorscale=[[0, "#0F1117"], [0.5, "#1A3A5C"], [1, "#3B9AE8"]],
+    text=cm_dt, texttemplate='%{text}', textfont=dict(size=13, color="#F1F5F9"),
+    xgap=3, ygap=3, showscale=False,
 ))
-fig_cm_knn.update_layout(title="KNN — Confusion Matrix",
-                          xaxis_title="Predicted", yaxis_title="Actual", height=500)
+fig_cm_dt.update_layout(title="Decision Tree — Confusion Matrix", height=420,
+                         xaxis_title="Predicted", yaxis_title="Actual")
 
-tab3_content = dbc.Container([
-    html.Br(),
-    html.H5("Model Comparison Table"),
-    dash_table.DataTable(
-        data=model_comparison_df.to_dict('records'),
-        columns=[{"name": i, "id": i} for i in model_comparison_df.columns],
-        style_header={'backgroundColor': '#2c3e50', 'color': 'white', 'fontWeight': 'bold'},
-        style_cell={'textAlign': 'center', 'padding': '10px'},
-        style_data_conditional=[{'if': {'row_index': 'odd'}, 'backgroundColor': '#f8f9fa'}]
-    ),
-    html.Hr(),
+cm_knn = confusion_matrix(y_test_cls, knn_model.predict(X_test_cls_scaled))
+fig_cm_knn = go.Figure(go.Heatmap(
+    z=cm_knn, x=labels_short, y=labels_short,
+    colorscale=[[0, "#0F1117"], [0.5, "#1A3A5C"], [1, "#2DD4BF"]],
+    text=cm_knn, texttemplate='%{text}', textfont=dict(size=13, color="#F1F5F9"),
+    xgap=3, ygap=3, showscale=False,
+))
+fig_cm_knn.update_layout(title="KNN — Confusion Matrix", height=420,
+                          xaxis_title="Predicted", yaxis_title="Actual")
+
+tab3 = dbc.Container([
+    html.Div(style={"height": "16px"}),
+    html.Div("Model Comparison", className="section-header"),
+    html.Div([
+        dash_table.DataTable(
+            data=model_comparison_df.to_dict('records'),
+            columns=[{"name": i, "id": i} for i in model_comparison_df.columns],
+            style_header={'backgroundColor': 'rgba(59,154,232,0.1)', 'color': '#3B9AE8',
+                          'fontWeight': '600', 'textTransform': 'uppercase', 'fontSize': '11px',
+                          'letterSpacing': '0.5px', 'border': '1px solid #2A2F45'},
+            style_cell={'textAlign': 'center', 'padding': '14px 16px',
+                        'backgroundColor': '#1E2235', 'color': '#F1F5F9',
+                        'border': '1px solid #2A2F45', 'fontFamily': 'Inter, sans-serif',
+                        'fontSize': '13px'},
+            style_data_conditional=[
+                {'if': {'row_index': 'odd'}, 'backgroundColor': '#1A1D2E'}
+            ]
+        )
+    ], className="glass-card mb-4", style={"padding": "0", "overflow": "hidden"}),
     dbc.Accordion([
         dbc.AccordionItem([
-            html.Pre(reg_metrics_text, style={"fontSize": "12px"}),
-            dcc.Graph(figure=fig_coef)
-        ], title="Linear Regression"),
+            html.Pre(reg_metrics_text,
+                     style={"fontSize": "12px", "color": "#94A3B8", "background": "transparent",
+                            "border": "none", "fontFamily": "JetBrains Mono, monospace"}),
+            html.Div([dcc.Graph(figure=fig_coef, config=CHART_CONFIG)], className="chart-container")
+        ], title="📈  Linear Regression — R² = 0.466"),
         dbc.AccordionItem([
-            html.Pre(dt_metrics_text, style={"fontSize": "12px"}),
-            dcc.Graph(figure=fig_cm_dt)
-        ], title="Decision Tree Classifier"),
+            html.Pre(dt_metrics_text,
+                     style={"fontSize": "12px", "color": "#94A3B8", "background": "transparent",
+                            "border": "none", "fontFamily": "JetBrains Mono, monospace"}),
+            html.Div([dcc.Graph(figure=fig_cm_dt, config=CHART_CONFIG)], className="chart-container")
+        ], title="🌳  Decision Tree — 96.7% Accuracy"),
         dbc.AccordionItem([
-            html.Pre(knn_metrics_text, style={"fontSize": "12px"}),
-            dcc.Graph(figure=fig_cm_knn)
-        ], title="KNN Classifier"),
-    ], start_collapsed=True)
+            html.Pre(knn_metrics_text,
+                     style={"fontSize": "12px", "color": "#94A3B8", "background": "transparent",
+                            "border": "none", "fontFamily": "JetBrains Mono, monospace"}),
+            html.Div([dcc.Graph(figure=fig_cm_knn, config=CHART_CONFIG)], className="chart-container")
+        ], title="🔍  KNN Classifier — 86.1% Accuracy"),
+    ], start_collapsed=True),
 ], fluid=True)
 
 # ============================================================
 # Tab 4: Cluster Profiles
 # ============================================================
-# PCA scatter
 X_cluster_scaled = joblib.load(os.path.join(PROJECT, 'outputs/data/clustering_data_scaled.pkl'))
 X_pca = pca_model.transform(X_cluster_scaled)
-
 pca_df = pd.DataFrame({
     'PC1': X_pca[:, 0], 'PC2': X_pca[:, 1],
     'Cluster': [f"Cluster {c}: {cluster_names.get(c, c)}" for c in cluster_labels]
@@ -271,205 +363,248 @@ pca_df = pd.DataFrame({
 
 fig_pca = px.scatter(pca_df, x='PC1', y='PC2', color='Cluster',
                       title="K-Means Clusters (PCA Projection)",
+                      color_discrete_sequence=CHART_COLORS,
+                      opacity=0.65,
                       labels={'PC1': f'PC1 ({pca_model.explained_variance_ratio_[0]*100:.1f}%)',
                               'PC2': f'PC2 ({pca_model.explained_variance_ratio_[1]*100:.1f}%)'})
+fig_pca.update_traces(marker=dict(size=7, line=dict(width=1, color='#0F1117')))
+fig_pca.update_layout(height=460, legend=dict(font=dict(size=10)))
 
 # Radar chart
 radar_features = ['FAF', 'TUE', 'FCVC', 'FAVC', 'CH2O', 'NCP', 'CAEC', 'CALC']
 radar_data = cluster_profiles[radar_features]
 radar_norm = (radar_data - radar_data.min()) / (radar_data.max() - radar_data.min() + 1e-10)
 
+RADAR_FILLS = [
+    "rgba(59,154,232,0.12)", "rgba(45,212,191,0.12)",
+    "rgba(251,191,36,0.12)", "rgba(167,139,250,0.12)",
+]
 fig_radar = go.Figure()
-colors_radar = ['#2196F3', '#4CAF50', '#FF9800', '#F44336', '#9C27B0']
 for i in range(len(cluster_profiles)):
-    vals = radar_norm.iloc[i].tolist()
-    vals += vals[:1]
+    vals = radar_norm.iloc[i].tolist() + [radar_norm.iloc[i].tolist()[0]]
     fig_radar.add_trace(go.Scatterpolar(
         r=vals, theta=radar_features + [radar_features[0]],
         fill='toself', name=f"Cluster {i}: {cluster_names.get(i, i)}",
-        line_color=colors_radar[i % len(colors_radar)]
+        line=dict(color=CHART_COLORS[i % len(CHART_COLORS)], width=2),
+        fillcolor=RADAR_FILLS[i % len(RADAR_FILLS)],
+        opacity=0.85,
     ))
-fig_radar.update_layout(title="Cluster Risk Profiles", height=500,
-                         polar=dict(radialaxis=dict(range=[0, 1])))
+fig_radar.update_layout(
+    title="Cluster Risk Profiles", height=460,
+    polar=dict(
+        bgcolor='rgba(0,0,0,0)',
+        radialaxis=dict(range=[0, 1], gridcolor='#2A2F45', linecolor='#2A2F45',
+                        tickfont=dict(size=10, color="#64748B")),
+        angularaxis=dict(gridcolor='#2A2F45', linecolor='#2A2F45',
+                         tickfont=dict(size=12, color="#94A3B8")),
+    ),
+    legend=dict(font=dict(size=10)),
+)
 
-tab4_content = dbc.Container([
-    html.Br(),
+tab4 = dbc.Container([
+    html.Div(style={"height": "16px"}),
     dbc.Row([
-        dbc.Col(dcc.Graph(figure=fig_pca), md=6),
-        dbc.Col(dcc.Graph(figure=fig_radar), md=6),
-    ]),
-    html.Hr(),
-    html.H5("Cluster Profile Summary (Mean Values)"),
-    dash_table.DataTable(
-        data=cluster_profiles.round(3).to_dict('records'),
-        columns=[{"name": i, "id": i} for i in cluster_profiles.columns],
-        style_header={'backgroundColor': '#2c3e50', 'color': 'white', 'fontWeight': 'bold'},
-        style_cell={'textAlign': 'center', 'padding': '8px', 'fontSize': '12px'},
-        style_data_conditional=[{'if': {'row_index': 'odd'}, 'backgroundColor': '#f8f9fa'}]
-    )
+        dbc.Col(html.Div([
+            dcc.Graph(figure=fig_pca, config=CHART_CONFIG)
+        ], className="chart-container"), md=6),
+        dbc.Col(html.Div([
+            dcc.Graph(figure=fig_radar, config=CHART_CONFIG)
+        ], className="chart-container"), md=6),
+    ], className="g-3 mb-3"),
+    html.Div("Cluster Profile Summary", className="section-header"),
+    html.Div([
+        dash_table.DataTable(
+            data=cluster_profiles.round(3).to_dict('records'),
+            columns=[{"name": i, "id": i} for i in cluster_profiles.columns],
+            style_header={'backgroundColor': 'rgba(59,154,232,0.1)', 'color': '#3B9AE8',
+                          'fontWeight': '600', 'textTransform': 'uppercase', 'fontSize': '11px',
+                          'letterSpacing': '0.5px', 'border': '1px solid #2A2F45'},
+            style_cell={'textAlign': 'center', 'padding': '12px 14px',
+                        'backgroundColor': '#1E2235', 'color': '#F1F5F9',
+                        'border': '1px solid #2A2F45', 'fontFamily': 'Inter, sans-serif',
+                        'fontSize': '12px'},
+            style_data_conditional=[
+                {'if': {'row_index': 'odd'}, 'backgroundColor': '#1A1D2E'}
+            ]
+        )
+    ], className="glass-card", style={"padding": "0", "overflow": "hidden"}),
 ], fluid=True)
 
 # ============================================================
 # Tab 5: Screening Tool
 # ============================================================
-def make_input_form():
-    return dbc.Card([
-        dbc.CardHeader(html.H4("Enter Patient Information", className="mb-0")),
-        dbc.CardBody([
-            dbc.Row([
-                dbc.Col([
-                    dbc.Label("Gender"), dcc.Dropdown(id='inp-gender',
-                        options=[{'label': 'Female', 'value': 'Female'}, {'label': 'Male', 'value': 'Male'}],
-                        value='Female', clearable=False)
-                ], md=3),
-                dbc.Col([
-                    dbc.Label("Age"), dbc.Input(id='inp-age', type='number', min=14, max=65, value=20)
-                ], md=3),
-                dbc.Col([
-                    dbc.Label("Height (meters)"), dbc.Input(id='inp-height', type='number', min=1.0, max=2.2, step=0.01, value=1.65)
-                ], md=3),
-                dbc.Col([
-                    dbc.Label("Weight (kg)"), dbc.Input(id='inp-weight', type='number', min=30, max=200, step=0.5, value=65)
-                ], md=3),
-            ], className="mb-3"),
-            dbc.Row([
-                dbc.Col([
-                    dbc.Label("Family History of Overweight"),
-                    dcc.RadioItems(id='inp-fh', options=[{'label': ' Yes', 'value': 'yes'}, {'label': ' No', 'value': 'no'}],
-                                   value='yes', inline=True)
-                ], md=4),
-                dbc.Col([
-                    dbc.Label("High Caloric Food (FAVC)"),
-                    dcc.RadioItems(id='inp-favc', options=[{'label': ' Yes', 'value': 'yes'}, {'label': ' No', 'value': 'no'}],
-                                   value='yes', inline=True)
-                ], md=4),
-                dbc.Col([
-                    dbc.Label("Smoking"),
-                    dcc.RadioItems(id='inp-smoke', options=[{'label': ' Yes', 'value': 'yes'}, {'label': ' No', 'value': 'no'}],
-                                   value='no', inline=True)
-                ], md=4),
-            ], className="mb-3"),
-            dbc.Row([
-                dbc.Col([
-                    dbc.Label("Vegetable Consumption (FCVC)"),
-                    dcc.Slider(id='inp-fcvc', min=1, max=3, step=0.5, value=2,
-                               marks={1: 'Never', 2: 'Sometimes', 3: 'Always'})
-                ], md=4),
-                dbc.Col([
-                    dbc.Label("Meals per Day (NCP)"),
-                    dcc.Slider(id='inp-ncp', min=1, max=4, step=1, value=3,
-                               marks={1: '1', 2: '2', 3: '3', 4: '4+'})
-                ], md=4),
-                dbc.Col([
-                    dbc.Label("Water Consumption (CH2O)"),
-                    dcc.Slider(id='inp-ch2o', min=1, max=3, step=0.5, value=2,
-                               marks={1: '<1L', 2: '1-2L', 3: '>2L'})
-                ], md=4),
-            ], className="mb-3"),
-            dbc.Row([
-                dbc.Col([
-                    dbc.Label("Physical Activity (FAF)"),
-                    dcc.Slider(id='inp-faf', min=0, max=3, step=1, value=1,
-                               marks={0: 'None', 1: '1-2 days', 2: '2-4 days', 3: '4-5 days'})
-                ], md=4),
-                dbc.Col([
-                    dbc.Label("Technology Use (TUE)"),
-                    dcc.Slider(id='inp-tue', min=0, max=2, step=1, value=1,
-                               marks={0: '0-2 hrs', 1: '3-5 hrs', 2: '5+ hrs'})
-                ], md=4),
-                dbc.Col([
-                    dbc.Label("Calorie Monitoring (SCC)"),
-                    dcc.RadioItems(id='inp-scc', options=[{'label': ' Yes', 'value': 'yes'}, {'label': ' No', 'value': 'no'}],
-                                   value='no', inline=True)
-                ], md=4),
-            ], className="mb-3"),
-            dbc.Row([
-                dbc.Col([
-                    dbc.Label("Eating Between Meals (CAEC)"),
-                    dcc.Dropdown(id='inp-caec',
-                        options=[{'label': v, 'value': v} for v in ['no', 'Sometimes', 'Frequently', 'Always']],
-                        value='Sometimes', clearable=False)
-                ], md=4),
-                dbc.Col([
-                    dbc.Label("Alcohol Consumption (CALC)"),
-                    dcc.Dropdown(id='inp-calc',
-                        options=[{'label': v, 'value': v} for v in ['no', 'Sometimes', 'Frequently', 'Always']],
-                        value='Sometimes', clearable=False)
-                ], md=4),
-                dbc.Col([
-                    dbc.Label("Transportation (MTRANS)"),
-                    dcc.Dropdown(id='inp-mtrans',
-                        options=[{'label': v, 'value': v} for v in ['Automobile', 'Motorbike', 'Bike', 'Public_Transportation', 'Walking']],
-                        value='Public_Transportation', clearable=False)
-                ], md=4),
-            ], className="mb-3"),
-            html.Div(className="d-grid gap-2", children=[
-                dbc.Button("Predict Obesity Risk", id="predict-btn", color="primary", size="lg", className="mt-3")
-            ])
-        ])
-    ], className="shadow-sm")
+def make_dropdown(id, options, value):
+    return dcc.Dropdown(id=id, options=[{'label': v, 'value': v} for v in options],
+                        value=value, clearable=False)
 
-tab5_content = dbc.Container([
-    html.Br(),
-    html.P("Enter lifestyle and demographic information below to receive a personalized obesity risk assessment. "
-           "This tool uses trained machine learning models to predict obesity risk level, estimated BMI, "
-           "and behavioral risk cluster.", className="text-muted"),
-    make_input_form(),
-    html.Br(),
-    html.Div(id='prediction-output')
+tab5 = dbc.Container([
+    html.Div(style={"height": "16px"}),
+    html.P("Enter lifestyle and demographic information to receive a personalized obesity risk assessment "
+           "powered by trained machine learning models.",
+           className="section-subtitle"),
+
+    # Section 1: Physical Profile
+    html.Div([
+        html.Div("Physical Profile", className="form-section-title"),
+        dbc.Row([
+            dbc.Col([
+                dbc.Label("Gender", className="form-label"),
+                make_dropdown('inp-gender', ['Female', 'Male'], 'Female')
+            ], xs=6, md=3),
+            dbc.Col([
+                dbc.Label("Age", className="form-label"),
+                dbc.Input(id='inp-age', type='number', min=14, max=65, value=20)
+            ], xs=6, md=3),
+            dbc.Col([
+                dbc.Label("Height (m)", className="form-label"),
+                dbc.Input(id='inp-height', type='number', min=1.0, max=2.2, step=0.01, value=1.65)
+            ], xs=6, md=3),
+            dbc.Col([
+                dbc.Label("Weight (kg)", className="form-label"),
+                dbc.Input(id='inp-weight', type='number', min=30, max=200, step=0.5, value=65)
+            ], xs=6, md=3),
+        ]),
+    ], className="form-section"),
+
+    # Section 2: Dietary Habits
+    html.Div([
+        html.Div("Dietary Habits", className="form-section-title"),
+        dbc.Row([
+            dbc.Col([
+                dbc.Label("High Caloric Food (FAVC)", className="form-label"),
+                dcc.RadioItems(id='inp-favc',
+                    options=[{'label': ' Yes', 'value': 'yes'}, {'label': ' No', 'value': 'no'}],
+                    value='yes', inline=True)
+            ], xs=6, md=4),
+            dbc.Col([
+                dbc.Label("Eating Between Meals", className="form-label"),
+                make_dropdown('inp-caec', ['no', 'Sometimes', 'Frequently', 'Always'], 'Sometimes')
+            ], xs=6, md=4),
+            dbc.Col([
+                dbc.Label("Alcohol Consumption", className="form-label"),
+                make_dropdown('inp-calc', ['no', 'Sometimes', 'Frequently', 'Always'], 'Sometimes')
+            ], xs=12, md=4),
+        ], className="mb-3"),
+        dbc.Row([
+            dbc.Col([
+                dbc.Label("Vegetable Consumption (FCVC)", className="form-label"),
+                dcc.Slider(id='inp-fcvc', min=1, max=3, step=0.5, value=2,
+                           marks={1: 'Never', 2: 'Sometimes', 3: 'Always'})
+            ], md=4),
+            dbc.Col([
+                dbc.Label("Meals per Day (NCP)", className="form-label"),
+                dcc.Slider(id='inp-ncp', min=1, max=4, step=1, value=3,
+                           marks={1: '1', 2: '2', 3: '3', 4: '4+'})
+            ], md=4),
+            dbc.Col([
+                dbc.Label("Water Intake (CH2O)", className="form-label"),
+                dcc.Slider(id='inp-ch2o', min=1, max=3, step=0.5, value=2,
+                           marks={1: '<1L', 2: '1-2L', 3: '>2L'})
+            ], md=4),
+        ]),
+    ], className="form-section"),
+
+    # Section 3: Lifestyle
+    html.Div([
+        html.Div("Lifestyle & Activity", className="form-section-title"),
+        dbc.Row([
+            dbc.Col([
+                dbc.Label("Physical Activity (FAF)", className="form-label"),
+                dcc.Slider(id='inp-faf', min=0, max=3, step=1, value=1,
+                           marks={0: 'None', 1: '1-2 days', 2: '2-4 days', 3: '4-5 days'})
+            ], md=4),
+            dbc.Col([
+                dbc.Label("Screen Time (TUE)", className="form-label"),
+                dcc.Slider(id='inp-tue', min=0, max=2, step=1, value=1,
+                           marks={0: '0-2 hrs', 1: '3-5 hrs', 2: '5+ hrs'})
+            ], md=4),
+            dbc.Col([
+                dbc.Label("Transportation", className="form-label"),
+                make_dropdown('inp-mtrans',
+                    ['Automobile', 'Motorbike', 'Bike', 'Public_Transportation', 'Walking'],
+                    'Public_Transportation')
+            ], md=4),
+        ], className="mb-3"),
+        dbc.Row([
+            dbc.Col([
+                dbc.Label("Smoking", className="form-label"),
+                dcc.RadioItems(id='inp-smoke',
+                    options=[{'label': ' Yes', 'value': 'yes'}, {'label': ' No', 'value': 'no'}],
+                    value='no', inline=True)
+            ], md=4),
+            dbc.Col([
+                dbc.Label("Calorie Monitoring (SCC)", className="form-label"),
+                dcc.RadioItems(id='inp-scc',
+                    options=[{'label': ' Yes', 'value': 'yes'}, {'label': ' No', 'value': 'no'}],
+                    value='no', inline=True)
+            ], md=4),
+            dbc.Col([
+                dbc.Label("Family History", className="form-label"),
+                dcc.RadioItems(id='inp-fh',
+                    options=[{'label': ' Yes', 'value': 'yes'}, {'label': ' No', 'value': 'no'}],
+                    value='yes', inline=True)
+            ], md=4),
+        ]),
+    ], className="form-section"),
+
+    html.Div([
+        dbc.Button("Analyze Risk Profile", id="predict-btn", className="btn-predict mt-3")
+    ]),
+    html.Div(style={"height": "20px"}),
+    html.Div(id='prediction-output'),
 ], fluid=True)
 
 # ============================================================
 # Main Layout
 # ============================================================
-app.layout = dbc.Container([
+app.layout = html.Div([
     dbc.NavbarSimple(
         brand="Childhood Obesity Risk Screening Dashboard",
-        brand_style={"fontSize": "1.5rem", "fontWeight": "bold"},
-        color="primary", dark=True, className="mb-4"
+        brand_style={"fontSize": "1.4rem", "fontWeight": "700"},
+        color="dark", dark=True, className="mb-0"
     ),
     dbc.Tabs([
-        dbc.Tab(tab1_content, label="Overview", tab_id="tab-overview"),
-        dbc.Tab(tab2_content, label="Risk Factor Explorer", tab_id="tab-risk"),
-        dbc.Tab(tab3_content, label="Model Results", tab_id="tab-models"),
-        dbc.Tab(tab4_content, label="Cluster Profiles", tab_id="tab-clusters"),
-        dbc.Tab(tab5_content, label="Screening Tool", tab_id="tab-screening"),
-    ]),
-    html.Footer([
-        html.Hr(),
+        dbc.Tab(tab1, label="Overview", tab_id="tab-overview",
+                label_style={"fontFamily": "Inter, sans-serif"}),
+        dbc.Tab(tab2, label="Risk Factor Explorer", tab_id="tab-risk",
+                label_style={"fontFamily": "Inter, sans-serif"}),
+        dbc.Tab(tab3, label="Model Results", tab_id="tab-models",
+                label_style={"fontFamily": "Inter, sans-serif"}),
+        dbc.Tab(tab4, label="Cluster Profiles", tab_id="tab-clusters",
+                label_style={"fontFamily": "Inter, sans-serif"}),
+        dbc.Tab(tab5, label="Screening Tool", tab_id="tab-screening",
+                label_style={"fontFamily": "Inter, sans-serif"}),
+    ], className="px-3"),
+    html.Div([
         html.P("DSC 510 Final Project | Group 2: Rushi Patel, Raffey Akram, Vishnu Doddapaneni | "
-               "Prof. Casey Bennett | DePaul University",
-               className="text-center text-muted"),
+               "Prof. Casey Bennett | DePaul University"),
         html.P("This tool is for educational and research purposes only. Not a substitute for medical advice.",
-               className="text-center text-muted", style={"fontSize": "0.8rem"})
-    ])
-], fluid=True)
+               style={"fontSize": "11px"}),
+    ], className="dashboard-footer"),
+], className="gradient-bg")
 
 # ============================================================
 # Callbacks
 # ============================================================
-@app.callback(
-    Output('feature-dist-graph', 'figure'),
-    Input('feature-select', 'value')
-)
+@app.callback(Output('feature-dist-graph', 'figure'), Input('feature-select', 'value'))
 def update_feature_dist(feature):
     fig = px.box(df, x='NObeyesdad', y=feature,
                  category_orders={'NObeyesdad': OBESITY_ORDER},
                  color='NObeyesdad', color_discrete_map=OBESITY_COLORS,
                  title=f'{feature} Distribution by Obesity Level')
-    fig.update_layout(showlegend=False, xaxis_tickangle=-45)
+    fig.update_layout(showlegend=False, xaxis_tickangle=-45, height=380,
+                       xaxis_title="", yaxis_title=feature)
     return fig
 
-@app.callback(
-    Output('scatter-graph', 'figure'),
-    [Input('scatter-x', 'value'), Input('scatter-y', 'value')]
-)
+@app.callback(Output('scatter-graph', 'figure'),
+              [Input('scatter-x', 'value'), Input('scatter-y', 'value')])
 def update_scatter(x_feat, y_feat):
     fig = px.scatter(df, x=x_feat, y=y_feat, color='NObeyesdad',
                      category_orders={'NObeyesdad': OBESITY_ORDER},
                      color_discrete_map=OBESITY_COLORS,
-                     title=f'{x_feat} vs {y_feat} by Obesity Level',
-                     opacity=0.6)
+                     title=f'{x_feat} vs {y_feat}', opacity=0.6)
+    fig.update_traces(marker=dict(size=6, line=dict(width=1, color='#0F1117')))
+    fig.update_layout(height=380, legend=dict(font=dict(size=9)))
     return fig
 
 @app.callback(
@@ -491,22 +626,17 @@ def predict(n_clicks, gender, age, height, weight, fh, favc,
         if any(v is None for v in [gender, age, height, weight]):
             return dbc.Alert("Please fill in all required fields.", color="warning")
 
-        age = float(age)
-        height = float(height)
-        weight = float(weight)
+        age, height, weight = float(age), float(height), float(weight)
 
-        # Encode inputs
+        # Encode
         gender_enc = 1 if gender == 'Male' else 0
         fh_enc = 1 if fh == 'yes' else 0
         favc_enc = 1 if favc == 'yes' else 0
         smoke_enc = 1 if smoke == 'yes' else 0
         scc_enc = 1 if scc == 'yes' else 0
-
         caec_map = {'no': 0, 'Sometimes': 1, 'Frequently': 2, 'Always': 3}
         calc_map = {'no': 0, 'Sometimes': 1, 'Frequently': 2, 'Always': 3}
-        caec_enc = caec_map.get(caec, 1)
-        calc_enc = calc_map.get(calc, 1)
-
+        caec_enc, calc_enc = caec_map.get(caec, 1), calc_map.get(calc, 1)
         mtrans_bike = 1 if mtrans == 'Bike' else 0
         mtrans_motorbike = 1 if mtrans == 'Motorbike' else 0
         mtrans_public = 1 if mtrans == 'Public_Transportation' else 0
@@ -516,7 +646,7 @@ def predict(n_clicks, gender, age, height, weight, fh, favc,
         activity_screen_ratio = faf / (tue + 0.1)
         dietary_risk_score = favc_enc + (3 - fcvc) + caec_enc
 
-        # Build classification features (MUST match feature_names_cls order)
+        # Classification
         cls_dict = {
             'Gender': gender_enc, 'Age': age, 'Height': height, 'Weight': weight,
             'family_history_with_overweight': fh_enc, 'FAVC': favc_enc,
@@ -529,7 +659,7 @@ def predict(n_clicks, gender, age, height, weight, fh, favc,
         }
         cls_features = pd.DataFrame([cls_dict])[feature_names_cls]
 
-        # Build regression features
+        # Regression
         reg_dict = {
             'Gender': gender_enc, 'Age': age,
             'family_history_with_overweight': fh_enc, 'FAVC': favc_enc,
@@ -540,7 +670,7 @@ def predict(n_clicks, gender, age, height, weight, fh, favc,
         }
         reg_features = pd.DataFrame([reg_dict])[feature_names_reg]
 
-        # Build clustering features
+        # Clustering
         cluster_dict = {
             'Gender': gender_enc, 'Age': age,
             'family_history_with_overweight': fh_enc, 'FAVC': favc_enc,
@@ -549,85 +679,134 @@ def predict(n_clicks, gender, age, height, weight, fh, favc,
         }
         cluster_features = pd.DataFrame([cluster_dict])[feature_names_cluster]
 
-        # Scale and predict
-        cls_scaled = scaler_cls.transform(cls_features)
-        reg_scaled = scaler_reg.transform(reg_features)
-        cluster_scaled_input = scaler_cluster.transform(cluster_features)
-
-        # Decision Tree prediction (unscaled)
+        # Predict
         dt_pred = dt_model.predict(cls_features)[0]
         predicted_class = reverse_label_mapping[dt_pred]
-
-        # BMI prediction
-        predicted_bmi = lr_model.predict(reg_scaled)[0]
-
-        # Cluster assignment
-        cluster_pred = km_model.predict(cluster_scaled_input)[0]
+        predicted_bmi = lr_model.predict(scaler_reg.transform(reg_features))[0]
+        cluster_pred = km_model.predict(scaler_cluster.transform(cluster_features))[0]
         cluster_name = cluster_names.get(cluster_pred, f"Cluster {cluster_pred}")
 
-        # Risk factors and recommendations
-        recommendations = []
-        risk_factors = []
+        # Risk gauge
+        bmi_score = min(max((bmi - 15) / (50 - 15) * 100, 0), 100)
+        fig_gauge = go.Figure(go.Indicator(
+            mode="gauge+number",
+            value=bmi,
+            number={"suffix": "", "font": {"size": 38, "color": "#F1F5F9", "family": "Manrope"},
+                     "valueformat": ".1f"},
+            title={"text": "BMI Score", "font": {"size": 14, "color": "#94A3B8"}},
+            gauge=dict(
+                axis=dict(range=[15, 50], tickcolor="#64748B", dtick=5,
+                          tickfont=dict(size=10, color="#64748B")),
+                bar=dict(color="#3B9AE8", thickness=0.7),
+                bgcolor="rgba(0,0,0,0)", borderwidth=0,
+                steps=[
+                    dict(range=[15, 18.5], color="rgba(96,165,250,0.15)"),
+                    dict(range=[18.5, 25], color="rgba(52,211,153,0.15)"),
+                    dict(range=[25, 30], color="rgba(251,191,36,0.15)"),
+                    dict(range=[30, 50], color="rgba(248,113,113,0.15)"),
+                ],
+                threshold=dict(line=dict(color="#F87171", width=3), thickness=0.8, value=bmi),
+            ),
+        ))
+        fig_gauge.update_layout(height=220, margin=dict(t=50, b=10, l=30, r=30),
+                                 paper_bgcolor="rgba(0,0,0,0)", font=dict(family="Inter"))
 
+        # Recommendations
+        recommendations, risk_factors = [], []
         if faf <= 1:
             risk_factors.append("Low physical activity")
-            recommendations.append("Consider increasing physical activity to at least 2-4 days per week")
+            recommendations.append("Increase physical activity to 2-4 days/week")
         if tue >= 2:
-            risk_factors.append("High screen/technology time")
-            recommendations.append("Consider reducing screen/technology time to under 2 hours per day")
+            risk_factors.append("High screen time")
+            recommendations.append("Reduce screen time to under 3 hours/day")
         if fcvc < 2:
-            risk_factors.append("Low vegetable consumption")
+            risk_factors.append("Low vegetable intake")
             recommendations.append("Increase daily vegetable consumption")
         if ch2o < 2:
             risk_factors.append("Low water intake")
-            recommendations.append("Increase water intake to at least 2 liters per day")
+            recommendations.append("Drink at least 2 liters of water daily")
         if favc == 'yes':
-            risk_factors.append("Frequent high-calorie food consumption")
-            recommendations.append("Reduce consumption of high-calorie foods")
+            risk_factors.append("High-calorie food consumption")
+            recommendations.append("Reduce high-calorie food intake")
         if fh == 'yes':
             risk_factors.append("Family history of overweight")
-            recommendations.append("Monitor weight closely due to family history; focus on preventive lifestyle habits")
-
+            recommendations.append("Monitor weight closely; focus on preventive habits")
         if not risk_factors:
             risk_factors = ["No major modifiable risk factors identified"]
         if not recommendations:
             recommendations = ["Continue maintaining healthy lifestyle habits"]
 
-        badge_color = RISK_BADGE_COLORS.get(predicted_class, 'secondary')
+        risk_css = RISK_CSS.get(predicted_class, 'risk-moderate')
 
-        result = dbc.Card([
-            dbc.CardHeader(html.H4("Prediction Results", className="mb-0 text-white"),
-                          style={"backgroundColor": "#2c3e50"}),
-            dbc.CardBody([
+        result = html.Div([
+            # Header
+            html.Div([
+                html.H4("Prediction Results", style={"margin": "0", "color": "#F1F5F9",
+                         "fontFamily": "Manrope, sans-serif", "fontWeight": "700"}),
+            ], className="result-header"),
+
+            html.Div([
+                # Top row: Risk + Gauge + Cluster
                 dbc.Row([
                     dbc.Col([
-                        html.H5("Predicted Risk Level"),
-                        dbc.Badge(predicted_class.replace('_', ' '), color=badge_color,
-                                  className="p-3", style={"fontSize": "1.2rem"}),
-                    ], md=4, className="text-center"),
+                        html.Div("Predicted Risk Level",
+                                 style={"fontSize": "12px", "color": "#64748B",
+                                        "textTransform": "uppercase", "letterSpacing": "1px",
+                                        "marginBottom": "12px", "fontWeight": "600"}),
+                        html.Div(predicted_class.replace('_', ' '), className=f"risk-badge {risk_css}"),
+                    ], md=4, className="text-center", style={"paddingTop": "20px"}),
+
                     dbc.Col([
-                        html.H5("Predicted BMI"),
-                        html.H3(f"{predicted_bmi:.1f} kg/m²", className="text-primary"),
-                        html.P(f"Actual BMI (from inputs): {bmi:.1f} kg/m²", className="text-muted small")
-                    ], md=4, className="text-center"),
+                        dcc.Graph(figure=fig_gauge, config=CHART_CONFIG,
+                                  style={"height": "220px"})
+                    ], md=4),
+
                     dbc.Col([
-                        html.H5("Behavioral Cluster"),
-                        html.H4(cluster_name, className="text-info"),
-                    ], md=4, className="text-center"),
+                        html.Div("Behavioral Cluster",
+                                 style={"fontSize": "12px", "color": "#64748B",
+                                        "textTransform": "uppercase", "letterSpacing": "1px",
+                                        "marginBottom": "12px", "fontWeight": "600"}),
+                        html.Div(cluster_name,
+                                 style={"fontSize": "20px", "fontWeight": "700",
+                                        "color": "#2DD4BF", "fontFamily": "Manrope"}),
+                        html.Div(f"Predicted BMI: {predicted_bmi:.1f} kg/m²",
+                                 style={"fontSize": "13px", "color": "#94A3B8", "marginTop": "8px"}),
+                        html.Div(f"Actual BMI: {bmi:.1f} kg/m²",
+                                 style={"fontSize": "12px", "color": "#64748B"}),
+                    ], md=4, className="text-center", style={"paddingTop": "20px"}),
                 ], className="mb-4"),
-                html.Hr(),
+
+                html.Hr(style={"borderColor": "#2A2F45", "opacity": "0.5"}),
+
+                # Bottom row: Risk Factors + Recommendations
                 dbc.Row([
                     dbc.Col([
-                        html.H5("Top Risk Factors", className="text-danger"),
-                        html.Ul([html.Li(rf) for rf in risk_factors[:3]])
+                        html.Div("Risk Factors",
+                                 style={"fontSize": "14px", "fontWeight": "700",
+                                        "color": "#F87171", "marginBottom": "12px",
+                                        "fontFamily": "Manrope"}),
+                        html.Div([
+                            html.Div([
+                                html.Span("⚠ ", style={"color": "#FBBF24"}),
+                                html.Span(rf)
+                            ], className="rec-card") for rf in risk_factors[:4]
+                        ])
                     ], md=6),
                     dbc.Col([
-                        html.H5("Personalized Recommendations", className="text-success"),
-                        html.Ul([html.Li(r) for r in recommendations[:4]])
+                        html.Div("Recommendations",
+                                 style={"fontSize": "14px", "fontWeight": "700",
+                                        "color": "#34D399", "marginBottom": "12px",
+                                        "fontFamily": "Manrope"}),
+                        html.Div([
+                            html.Div([
+                                html.Span("✓ ", style={"color": "#34D399"}),
+                                html.Span(r)
+                            ], className="rec-card") for r in recommendations[:4]
+                        ])
                     ], md=6),
-                ])
-            ])
-        ], className="shadow")
+                ]),
+            ], style={"padding": "24px"}),
+        ], className="result-card result-reveal")
 
         return result
 
@@ -635,7 +814,7 @@ def predict(n_clicks, gender, age, height, weight, fh, favc,
         return dbc.Alert(f"Error: {str(e)}", color="danger")
 
 
-server = app.server  # Required for production deployment (Gunicorn)
+server = app.server
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8050))
