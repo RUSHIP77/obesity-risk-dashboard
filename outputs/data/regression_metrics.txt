@@ -1,0 +1,5 @@
+Linear Regression Results
+========================================
+R² Score: 0.4662
+RMSE: 5.9438
+MAE: 4.8167

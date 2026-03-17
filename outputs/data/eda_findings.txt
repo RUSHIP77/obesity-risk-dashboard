@@ -1,0 +1,17 @@
+Most common obesity class: Obesity_Type_I (351 records)
+
+Mean BMI per class:
+NObeyesdad
+Insufficient_Weight    17.405612
+Normal_Weight          22.014147
+Overweight_Level_I     25.984684
+Overweight_Level_II    28.212674
+Obesity_Type_I         32.269528
+Obesity_Type_II        36.722109
+Obesity_Type_III       42.286667
+
+Correlation between FAF and BMI: -0.1779
+
+Percentage with family history of overweight: 81.8%
+
+Most common transportation mode: Public_Transportation (1580 records)

@@ -1,0 +1,5 @@
+R² = 0.4662 — lifestyle factors explain 46.6% of BMI variance
+Largest positive coefficient: family_history_with_overweight (2.9058)
+Largest negative coefficient: CAEC (-1.7566)
+RMSE: 5.9438 kg/m²
+MAE: 4.8167 kg/m²

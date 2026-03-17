@@ -1,0 +1,4 @@
+Cluster 0: Moderate Risk
+Cluster 1: Poor Diet Risk
+Cluster 2: Moderate Risk (Group 2)
+Cluster 3: Active Healthy

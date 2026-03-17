@@ -1,0 +1,107 @@
+Dataset Shape: (2111, 17)
+
+Data Types:
+Gender                             object
+Age                                 int64
+Height                            float64
+Weight                            float64
+family_history_with_overweight     object
+FAVC                               object
+FCVC                              float64
+NCP                               float64
+CAEC                               object
+SMOKE                              object
+CH2O                              float64
+SCC                                object
+FAF                               float64
+TUE                               float64
+CALC                               object
+MTRANS                             object
+NObeyesdad                         object
+
+Null Counts:
+Gender                            0
+Age                               0
+Height                            0
+Weight                            0
+family_history_with_overweight    0
+FAVC                              0
+FCVC                              0
+NCP                               0
+CAEC                              0
+SMOKE                             0
+CH2O                              0
+SCC                               0
+FAF                               0
+TUE                               0
+CALC                              0
+MTRANS                            0
+NObeyesdad                        0
+
+Descriptive Statistics:
+               Age       Height       Weight         FCVC          NCP         CH2O          FAF          TUE
+count  2111.000000  2111.000000  2111.000000  2111.000000  2111.000000  2111.000000  2111.000000  2111.000000
+mean     24.315964     1.701620    86.586035     2.418986     2.685651     2.008053     1.010313     0.657861
+std       6.357078     0.093368    26.191163     0.533996     0.778079     0.612950     0.850613     0.608926
+min      14.000000     1.450000    39.000000     1.000000     1.000000     1.000000     0.000000     0.000000
+25%      20.000000     1.630000    65.470000     2.000000     2.660000     1.585000     0.125000     0.000000
+50%      23.000000     1.700000    83.000000     2.390000     3.000000     2.000000     1.000000     0.625000
+75%      26.000000     1.770000   107.430000     3.000000     3.000000     2.480000     1.670000     1.000000
+max      61.000000     1.980000   173.000000     3.000000     4.000000     3.000000     3.000000     2.000000
+
+Target Variable Distribution:
+NObeyesdad
+Obesity_Type_I         351
+Obesity_Type_III       324
+Obesity_Type_II        297
+Overweight_Level_I     290
+Overweight_Level_II    290
+Normal_Weight          287
+Insufficient_Weight    272
+
+Gender:
+Gender
+Male      1068
+Female    1043
+
+family_history_with_overweight:
+family_history_with_overweight
+yes    1726
+no      385
+
+FAVC:
+FAVC
+yes    1866
+no      245
+
+CAEC:
+CAEC
+Sometimes     1765
+Frequently     242
+Always          53
+no              51
+
+SMOKE:
+SMOKE
+no     2067
+yes      44
+
+SCC:
+SCC
+no     2015
+yes      96
+
+CALC:
+CALC
+Sometimes     1401
+no             639
+Frequently      70
+Always           1
+
+MTRANS:
+MTRANS
+Public_Transportation    1580
+Automobile                457
+Walking                    56
+Motorbike                  11
+Bike                        7

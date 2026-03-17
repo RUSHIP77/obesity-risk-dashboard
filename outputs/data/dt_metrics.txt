@@ -1,0 +1,22 @@
+Decision Tree Results
+========================================
+Best max_depth: 4
+Accuracy: 0.9669
+Macro F1: 0.9671
+Weighted F1: 0.9668
+
+Classification Report:
+                     precision    recall  f1-score   support
+
+Insufficient_Weight       1.00      0.98      0.99        54
+      Normal_Weight       0.95      1.00      0.97        58
+ Overweight_Level_I       0.96      0.95      0.96        58
+Overweight_Level_II       0.98      0.91      0.95        58
+     Obesity_Type_I       0.96      0.96      0.96        70
+    Obesity_Type_II       0.94      0.98      0.96        60
+   Obesity_Type_III       0.98      0.98      0.98        65
+
+           accuracy                           0.97       423
+          macro avg       0.97      0.97      0.97       423
+       weighted avg       0.97      0.97      0.97       423
+
