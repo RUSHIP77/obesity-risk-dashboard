@@ -364,9 +364,8 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ════════ CHART CONTAINERS ════════ */
 .chart-container {
-    background: var(--bg-card) !important;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: var(--bg-card-solid) !important;
+    /* NO backdrop-filter — creates stacking context that traps dropdowns */
     border: 1px solid var(--border) !important;
     border-radius: var(--radius) !important;
     box-shadow: var(--shadow-card);
@@ -477,16 +476,15 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ════════ FORM STYLING ════════ */
 .form-section {
-    background: var(--bg-card) !important;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: var(--bg-card-solid) !important;
+    /* NO backdrop-filter — per CSS spec it creates a stacking context
+       which traps dropdown menus behind the next card. Using opaque
+       bg-card-solid instead of translucent bg-card + blur. */
     border: 1px solid var(--border) !important;
     border-radius: var(--radius) !important;
     padding: 28px 28px 20px 28px;
     margin-bottom: 20px;
     overflow: visible;
-    /* NO position/z-index here — it would create a stacking context
-       that traps dropdown menus behind the next form-section card */
 }
 [data-theme="light"] .form-section {
     border: 0.5px solid rgba(0, 0, 0, 0.06) !important;
