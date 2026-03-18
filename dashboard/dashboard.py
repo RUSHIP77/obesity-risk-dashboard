@@ -179,8 +179,6 @@ app.index_string = '''
 # Tab 1: Overview
 # ============================================================
 avg_bmi = df['BMI'].mean()
-obesity_most = df['NObeyesdad'].value_counts().idxmax()
-fh_pct = (df['family_history_with_overweight'] == 'yes').mean() * 100
 
 kpi_row = dbc.Row([
     dbc.Col(html.Div([
@@ -414,19 +412,19 @@ tab3 = dbc.Container([
     dbc.Accordion([
         dbc.AccordionItem([
             html.Pre(reg_metrics_text,
-                     style={"fontSize": "12px", "color": "#94A3B8", "background": "transparent",
+                     style={"fontSize": "12px", "color": "var(--text-secondary)", "background": "transparent",
                             "border": "none", "fontFamily": "JetBrains Mono, monospace"}),
             html.Div([dcc.Graph(id="coef-chart", figure=fig_coef, config=CHART_CONFIG)], className="chart-container")
         ], title=f"📈  Linear Regression — R² = {lr_r2_val:.3f}"),
         dbc.AccordionItem([
             html.Pre(dt_metrics_text,
-                     style={"fontSize": "12px", "color": "#94A3B8", "background": "transparent",
+                     style={"fontSize": "12px", "color": "var(--text-secondary)", "background": "transparent",
                             "border": "none", "fontFamily": "JetBrains Mono, monospace"}),
             html.Div([dcc.Graph(id="cm-dt", figure=fig_cm_dt, config=CHART_CONFIG)], className="chart-container")
         ], title=f"🌳  Decision Tree — {dt_acc_val*100:.1f}% Accuracy"),
         dbc.AccordionItem([
             html.Pre(knn_metrics_text,
-                     style={"fontSize": "12px", "color": "#94A3B8", "background": "transparent",
+                     style={"fontSize": "12px", "color": "var(--text-secondary)", "background": "transparent",
                             "border": "none", "fontFamily": "JetBrains Mono, monospace"}),
             html.Div([dcc.Graph(id="cm-knn", figure=fig_cm_knn, config=CHART_CONFIG)], className="chart-container")
         ], title=f"🔍  KNN Classifier — {knn_acc_val*100:.1f}% Accuracy"),
@@ -824,7 +822,6 @@ def predict(n_clicks, gender, age, height, weight, fh, favc,
         cluster_name = cluster_names.get(cluster_pred, f"Cluster {cluster_pred}")
 
         # Risk gauge
-        bmi_score = min(max((bmi - 15) / (50 - 15) * 100, 0), 100)
         fig_gauge = go.Figure(go.Indicator(
             mode="gauge+number",
             value=bmi,

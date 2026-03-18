@@ -277,12 +277,10 @@ h1, h2, h3, h4, h5, h6 {
 .kpi-icon.teal   { background: rgba(45,212,191,0.25); color: #2DD4BF; }
 .kpi-icon.amber  { background: rgba(251,191,36,0.25); color: #FBBF24; }
 .kpi-icon.red    { background: rgba(248,113,113,0.25); color: #F87171; }
-.kpi-icon.purple { background: rgba(167,139,250,0.25); color: #A78BFA; }
 [data-theme="light"] .kpi-icon.blue   { background: rgba(0,102,204,0.12); color: #0066CC; }
 [data-theme="light"] .kpi-icon.teal   { background: rgba(40,167,69,0.12); color: #28A745; }
 [data-theme="light"] .kpi-icon.amber  { background: rgba(255,149,0,0.12); color: #FF9500; }
 [data-theme="light"] .kpi-icon.red    { background: rgba(255,59,48,0.12); color: #FF3B30; }
-[data-theme="light"] .kpi-icon.purple { background: rgba(175,82,222,0.12); color: #AF52DE; }
 
 .kpi-value {
     font-family: var(--font-heading) !important;
@@ -413,18 +411,10 @@ h1, h2, h3, h4, h5, h6 {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
 }
-.fade-in    { animation: fadeInUp 0.6s ease-out forwards; }
 .fade-in-d1 { animation: fadeInUp 0.6s ease-out 0.1s forwards; opacity: 0; }
 .fade-in-d2 { animation: fadeInUp 0.6s ease-out 0.2s forwards; opacity: 0; }
 .fade-in-d3 { animation: fadeInUp 0.6s ease-out 0.3s forwards; opacity: 0; }
 .fade-in-d4 { animation: fadeInUp 0.6s ease-out 0.4s forwards; opacity: 0; }
-
-/* ════════ PULSE ANIMATION ════════ */
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-}
-.pulse { animation: pulse 2s ease-in-out infinite; }
 
 /* ════════ RESULT REVEAL ════════ */
 @keyframes resultReveal {
@@ -552,9 +542,11 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ════════ DASH 4.0 RADIX UI DROPDOWN STYLES ════════ */
 
-/* Dropdown popup menu z-index fix */
+/* Dropdown popup menu — z-index fix + scroll constraint */
 .dash-dropdown-content {
     z-index: 9999 !important;
+    max-height: 300px !important;
+    overflow-y: auto !important;
 }
 
 /* Option hover/highlight state */
@@ -733,9 +725,6 @@ div[data-dash-is-loading] input[type="number"] {
     font-size: 11px !important;
     letter-spacing: 0.5px;
 }
-[data-theme="light"] .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner th {
-    background-color: rgba(0,102,204,0.06) !important;
-}
 
 /* ════════ CARD (DBC) ════════ */
 .card {
@@ -836,19 +825,6 @@ div[data-dash-is-loading] input[type="number"] {
     margin-bottom: 4px;
 }
 
-/* ════════ METRIC HIGHLIGHT ════════ */
-.metric-highlight {
-    background: rgba(59,154,232,0.08);
-    border: 1px solid rgba(59,154,232,0.15);
-    border-radius: var(--radius-sm);
-    padding: 20px;
-    text-align: center;
-}
-[data-theme="light"] .metric-highlight {
-    background: rgba(0,122,255,0.05);
-    border: 1px solid rgba(0,122,255,0.1);
-}
-
 /* ════════ TEXT UTILITIES ════════ */
 .text-gradient {
     background: linear-gradient(135deg, var(--primary), var(--secondary));
@@ -865,10 +841,6 @@ div[data-dash-is-loading] input[type="number"] {
 }
 .dash-dropdown-wrapper:has([data-state="open"]) {
     z-index: 9999;
-}
-.dash-dropdown-content {
-    max-height: 300px !important;
-    overflow-y: auto !important;
 }
 /* Keep search box sticky at top while options scroll */
 .dash-dropdown-search-container {
