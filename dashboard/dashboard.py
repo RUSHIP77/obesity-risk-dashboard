@@ -195,7 +195,7 @@ kpi_row = dbc.Row([
     ], className="kpi-card fade-in-d1"), xs=6, md=3),
     dbc.Col(html.Div([
         html.Div("🔬", className="kpi-icon teal"),
-        html.Div(str(len(df.columns) - 1), className="kpi-value"),
+        html.Div("16", className="kpi-value"),
         html.Div("Features", className="kpi-label"),
     ], className="kpi-card fade-in-d2"), xs=6, md=3),
     dbc.Col(html.Div([
