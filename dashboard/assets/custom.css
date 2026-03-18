@@ -88,7 +88,7 @@
     --text-secondary:   #6E6E73;
     --text-body:        #3C3C43;
     --text-muted:       #86868B;
-    --text-caption:     #AEAEB2;
+    --text-caption:     #86868B;
     --text-disabled:    #C7C7CC;
 
     --border:           rgba(0, 0, 0, 0.10);
@@ -438,10 +438,10 @@ h1, h2, h3, h4, h5, h6 {
 .risk-moderate { background: rgba(251,191,36,0.15); color: #FBBF24; border: 1px solid rgba(251,191,36,0.3); }
 .risk-high     { background: rgba(251,146,60,0.15); color: #FB923C; border: 1px solid rgba(251,146,60,0.3); }
 .risk-critical { background: rgba(248,113,113,0.15); color: #F87171; border: 1px solid rgba(248,113,113,0.3); }
-[data-theme="light"] .risk-low      { background: rgba(52,199,89,0.1); color: #1E8A3C; border: 1px solid rgba(52,199,89,0.3); }
-[data-theme="light"] .risk-moderate { background: rgba(255,149,0,0.1); color: #CC7700; border: 1px solid rgba(255,149,0,0.3); }
-[data-theme="light"] .risk-high     { background: rgba(255,149,0,0.15); color: #CC5500; border: 1px solid rgba(255,149,0,0.4); }
-[data-theme="light"] .risk-critical { background: rgba(255,59,48,0.1); color: #CC1100; border: 1px solid rgba(255,59,48,0.3); }
+[data-theme="light"] .risk-low      { background: rgba(52,199,89,0.15); color: #15803D; border: 1px solid rgba(52,199,89,0.4); }
+[data-theme="light"] .risk-moderate { background: rgba(255,149,0,0.15); color: #A35F00; border: 1px solid rgba(255,149,0,0.4); }
+[data-theme="light"] .risk-high     { background: rgba(255,100,0,0.18); color: #9A3400; border: 1px solid rgba(255,100,0,0.5); }
+[data-theme="light"] .risk-critical { background: rgba(255,59,48,0.15); color: #B91C1C; border: 1px solid rgba(255,59,48,0.4); }
 
 /* ════════ PREMIUM BUTTON ════════ */
 .btn-predict {
@@ -772,12 +772,13 @@ div[data-dash-is-loading] input[type="number"] {
     border-color: rgba(59,154,232,0.2);
 }
 [data-theme="light"] .rec-card {
-    background: rgba(0,0,0,0.02);
-    border: 1px solid rgba(0,0,0,0.06);
+    background: rgba(0,0,0,0.04);
+    border: 1px solid rgba(0,0,0,0.10);
+    color: #1D1D1F;
 }
 [data-theme="light"] .rec-card:hover {
-    background: rgba(0,122,255,0.06);
-    border-color: rgba(0,122,255,0.15);
+    background: rgba(0,122,255,0.08);
+    border-color: rgba(0,122,255,0.20);
 }
 
 /* ════════ RESULT CARD ════════ */
@@ -904,20 +905,32 @@ p, span, div, label { color: inherit; }
 }
 .result-label {
     font-size: 12px;
-    color: var(--text-caption);
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 1px;
     margin-bottom: 12px;
     font-weight: 600;
 }
+[data-theme="light"] .result-label {
+    color: #6E6E73;
+}
 .result-value-accent {
     color: var(--secondary);
+}
+[data-theme="light"] .result-value-accent {
+    color: #0E7A5B;
 }
 .result-subtitle {
     color: var(--text-secondary);
 }
+[data-theme="light"] .result-subtitle {
+    color: #3C3C43;
+}
 .result-caption {
-    color: var(--text-caption);
+    color: var(--text-muted);
+}
+[data-theme="light"] .result-caption {
+    color: #6E6E73;
 }
 .result-divider {
     border-color: var(--border-solid);

@@ -123,7 +123,15 @@ LABEL_COLORS = {OBESITY_LABELS[k]: v for k, v in OBESITY_COLORS.items()}
 
 # Clean feature names for display
 def clean_feature_name(name):
-    return name.replace('_', ' ').replace('MTRANS ', 'Transport: ').replace('family history with overweight', 'Family History')
+    return (name.replace('_', ' ')
+            .replace('MTRANS Public Transportation', 'Public Transit')
+            .replace('MTRANS Walking', 'Walking')
+            .replace('MTRANS Bike', 'Bike')
+            .replace('MTRANS Motorbike', 'Motorbike')
+            .replace('MTRANS ', '')
+            .replace('family history with overweight', 'Family History')
+            .replace('Activity Screen Ratio', 'Activity/Screen')
+            .replace('Dietary Risk Score', 'Diet Risk Score'))
 
 RISK_CSS = {
     'Insufficient_Weight': 'risk-low', 'Normal_Weight': 'risk-low',
@@ -352,7 +360,8 @@ model_comparison_df = pd.read_csv(os.path.join(PROJECT, 'outputs/data/model_comp
 
 # Regression coefficients
 coef_df = pd.DataFrame({
-    'Feature': feature_names_reg, 'Coefficient': lr_model.coef_
+    'Feature': [clean_feature_name(f) for f in feature_names_reg],
+    'Coefficient': lr_model.coef_
 }).sort_values('Coefficient')
 fig_coef = go.Figure(go.Bar(
     y=coef_df['Feature'], x=coef_df['Coefficient'], orientation='h',
@@ -361,7 +370,8 @@ fig_coef = go.Figure(go.Bar(
         cornerradius=6
     ),
 ))
-fig_coef.update_layout(title="Linear Regression Coefficients — Predicting BMI", height=420)
+fig_coef.update_layout(title="Linear Regression Coefficients — Predicting BMI", height=420,
+                        margin=dict(l=140, r=16, t=56, b=48))
 
 # Confusion matrices
 X_test_cls = joblib.load(os.path.join(PROJECT, 'outputs/data/classification_splits.pkl'))[1]
@@ -605,14 +615,16 @@ tab5 = dbc.Container([
                            marks={0: 'None', 1: '1-2 days', 2: '2-4 days', 3: '4-5 days'},
                            tooltip={"placement": "top", "always_visible": False}),
                          style={"paddingBottom": "28px"})
-            ], md=4),
+            ], md=6),
             dbc.Col([
                 dbc.Label("Screen Time (TUE)", className="form-label"),
                 html.Div(dcc.Slider(id='inp-tue', min=0, max=2, step=1, value=1,
                            marks={0: '0-2 hrs', 1: '3-5 hrs', 2: '5+ hrs'},
                            tooltip={"placement": "top", "always_visible": False}),
                          style={"paddingBottom": "28px"})
-            ], md=4),
+            ], md=6),
+        ], className="mb-3"),
+        dbc.Row([
             dbc.Col([
                 dbc.Label("Transportation", className="form-label"),
                 make_dropdown('inp-mtrans',
@@ -707,24 +719,24 @@ app.layout = html.Div([
 def update_feature_dist(feature):
     # Use abbreviated labels for x-axis readability
     SHORT_LABELS = {
-        'Insufficient Weight': 'Insuff.\nWeight',
-        'Normal Weight': 'Normal\nWeight',
-        'Overweight Level I': 'Overweight\nLevel I',
-        'Overweight Level II': 'Overweight\nLevel II',
-        'Obesity Type I': 'Obesity\nType I',
-        'Obesity Type II': 'Obesity\nType II',
-        'Obesity Type III': 'Obesity\nType III',
+        'Insufficient Weight': 'Insuff. Weight',
+        'Normal Weight': 'Normal Weight',
+        'Overweight Level I': 'Overweight I',
+        'Overweight Level II': 'Overweight II',
+        'Obesity Type I': 'Obesity I',
+        'Obesity Type II': 'Obesity II',
+        'Obesity Type III': 'Obesity III',
     }
     fig = px.box(df, x='Obesity_Label', y=feature,
                  category_orders={'Obesity_Label': LABEL_ORDER},
                  color='Obesity_Label', color_discrete_map=LABEL_COLORS,
                  title=f'{feature} Distribution by Obesity Level')
-    fig.update_layout(showlegend=False, height=420,
+    fig.update_layout(showlegend=False, height=440,
                        xaxis_title="", yaxis_title=feature,
-                       margin=dict(l=56, r=16, t=56, b=100),
+                       margin=dict(l=56, r=16, t=56, b=110),
                        xaxis=dict(
-                           tickfont=dict(size=10),
-                           tickangle=0,
+                           tickfont=dict(size=11),
+                           tickangle=-30,
                            tickvals=LABEL_ORDER,
                            ticktext=[SHORT_LABELS.get(l, l) for l in LABEL_ORDER],
                        ))
