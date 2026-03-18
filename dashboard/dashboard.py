@@ -89,7 +89,6 @@ dt_model = joblib.load(os.path.join(PROJECT, 'outputs/models/decision_tree_model
 knn_model = joblib.load(os.path.join(PROJECT, 'outputs/models/knn_model.pkl'))
 lr_model = joblib.load(os.path.join(PROJECT, 'outputs/models/linear_regression_model.pkl'))
 km_model = joblib.load(os.path.join(PROJECT, 'outputs/models/kmeans_model.pkl'))
-scaler_cls = joblib.load(os.path.join(PROJECT, 'outputs/models/scaler_classification.pkl'))
 scaler_reg = joblib.load(os.path.join(PROJECT, 'outputs/models/scaler_regression.pkl'))
 scaler_cluster = joblib.load(os.path.join(PROJECT, 'outputs/models/scaler_clustering.pkl'))
 feature_names_cls = joblib.load(os.path.join(PROJECT, 'outputs/models/feature_names_classification.pkl'))
@@ -242,7 +241,7 @@ fig_bmi.update_layout(height=420, legend_title_text="",
 
 tab1 = dbc.Container([
     html.Div(style={"height": "16px"}),
-    html.P("Machine learning analysis of 2,111 records examining lifestyle factors and obesity levels. "
+    html.P(f"Machine learning analysis of {len(df):,} records examining lifestyle factors and obesity levels. "
            "Data from Colombia, Peru, and Mexico, augmented with synthetic records via SMOTE.",
            className="section-subtitle"),
     kpi_row,
@@ -374,8 +373,8 @@ fig_coef.update_layout(title="Linear Regression Coefficients — Predicting BMI"
                         margin=dict(l=140, r=16, t=56, b=48))
 
 # Confusion matrices
-X_test_cls = joblib.load(os.path.join(PROJECT, 'outputs/data/classification_splits.pkl'))[1]
-y_test_cls = joblib.load(os.path.join(PROJECT, 'outputs/data/classification_splits.pkl'))[3]
+_cls_splits = joblib.load(os.path.join(PROJECT, 'outputs/data/classification_splits.pkl'))
+X_test_cls, y_test_cls = _cls_splits[1], _cls_splits[3]
 X_test_cls_scaled = joblib.load(os.path.join(PROJECT, 'outputs/data/classification_splits_scaled.pkl'))[1]
 
 cm_labels = ['Insuff.', 'Normal', 'Over. I', 'Over. II', 'Obese I', 'Obese II', 'Obese III']
@@ -708,8 +707,9 @@ app.layout = html.Div([
 # ============================================================
 # Callbacks
 # ============================================================
-@app.callback(Output('feature-dist-graph', 'figure'), Input('feature-select', 'value'))
-def update_feature_dist(feature):
+@app.callback(Output('feature-dist-graph', 'figure'),
+              [Input('feature-select', 'value'), Input('color-mode-switch', 'value')])
+def update_feature_dist(feature, theme_on):
     # Use abbreviated labels for x-axis readability
     SHORT_LABELS = {
         'Insufficient Weight': 'Insuff. Weight',
@@ -724,7 +724,9 @@ def update_feature_dist(feature):
                  category_orders={'Obesity_Label': LABEL_ORDER},
                  color='Obesity_Label', color_discrete_map=LABEL_COLORS,
                  title=f'{feature} Distribution by Obesity Level')
+    dist_template = "health_dark" if theme_on else "health_light"
     fig.update_layout(showlegend=False, height=440,
+                       template=dist_template,
                        xaxis_title="", yaxis_title=feature,
                        margin=dict(l=56, r=16, t=56, b=110),
                        xaxis=dict(
@@ -736,16 +738,18 @@ def update_feature_dist(feature):
     return fig
 
 @app.callback(Output('scatter-graph', 'figure'),
-              [Input('scatter-x', 'value'), Input('scatter-y', 'value')])
-def update_scatter(x_feat, y_feat):
+              [Input('scatter-x', 'value'), Input('scatter-y', 'value'),
+               Input('color-mode-switch', 'value')])
+def update_scatter(x_feat, y_feat, theme_on):
     fig = px.scatter(df, x=x_feat, y=y_feat, color='Obesity_Label',
                      category_orders={'Obesity_Label': LABEL_ORDER},
                      color_discrete_map=LABEL_COLORS,
                      title=f'{x_feat} vs {y_feat}', opacity=0.6,
                      labels={'Obesity_Label': ''})
+    scatter_template = "health_dark" if theme_on else "health_light"
     fig.update_traces(marker=dict(size=6, line=dict(width=0.5, color='rgba(0,0,0,0.2)')))
-    fig.update_layout(height=420, legend=dict(font=dict(size=11),
-                      title_text=""))
+    fig.update_layout(height=420, template=scatter_template,
+                      legend=dict(font=dict(size=11), title_text=""))
     return fig
 
 @app.callback(
@@ -758,19 +762,21 @@ def update_scatter(x_feat, y_feat):
      State('inp-caec', 'value'), State('inp-smoke', 'value'),
      State('inp-ch2o', 'value'), State('inp-scc', 'value'),
      State('inp-faf', 'value'), State('inp-tue', 'value'),
-     State('inp-calc', 'value'), State('inp-mtrans', 'value')],
+     State('inp-calc', 'value'), State('inp-mtrans', 'value'),
+     State('color-mode-switch', 'value')],
     prevent_initial_call=True
 )
 def predict(n_clicks, gender, age, height, weight, fh, favc,
-            fcvc, ncp, caec, smoke, ch2o, scc, faf, tue, calc, mtrans):
+            fcvc, ncp, caec, smoke, ch2o, scc, faf, tue, calc, mtrans, theme_on):
     try:
-        if any(v is None for v in [gender, age, height, weight]):
+        if any(v is None for v in [gender, age, height, weight, fh, favc,
+                                    fcvc, ncp, caec, smoke, ch2o, scc, faf, tue, calc, mtrans]):
             return dbc.Alert("Please fill in all required fields.", color="warning")
 
         age, height, weight = float(age), float(height), float(weight)
 
-        if height <= 0:
-            return dbc.Alert("Height must be greater than zero.", color="warning")
+        if height <= 0 or weight <= 0:
+            return dbc.Alert("Height and weight must be greater than zero.", color="warning")
 
         # Encode
         gender_enc = 1 if gender == 'Male' else 0
@@ -847,8 +853,10 @@ def predict(n_clicks, gender, age, height, weight, fh, favc,
                 threshold=dict(line=dict(color="#F87171", width=3), thickness=0.8, value=bmi),
             ),
         ))
+        gauge_template = "health_dark" if theme_on else "health_light"
         fig_gauge.update_layout(height=220, margin=dict(t=50, b=10, l=30, r=30),
-                                 paper_bgcolor="rgba(0,0,0,0)", font=dict(family="Inter"))
+                                 paper_bgcolor="rgba(0,0,0,0)", font=dict(family="Inter"),
+                                 template=gauge_template)
 
         # Recommendations
         recommendations, risk_factors = [], []
@@ -944,8 +952,8 @@ def predict(n_clicks, gender, age, height, weight, fh, favc,
 
         return result
 
-    except Exception as e:
-        return dbc.Alert(f"Error: {str(e)}", color="danger")
+    except Exception:
+        return dbc.Alert("An error occurred while processing your input. Please check all fields and try again.", color="danger")
 
 
 # ============================================================
