@@ -583,26 +583,23 @@ tab5 = dbc.Container([
         dbc.Row([
             dbc.Col([
                 dbc.Label("Vegetable Consumption (FCVC)", className="form-label"),
-                html.Div(dcc.Slider(id='inp-fcvc', min=1, max=3, step=0.5, value=2,
+                dcc.Slider(id='inp-fcvc', min=1, max=3, step=0.5, value=2,
                            marks={1: 'Never', 2: 'Sometimes', 3: 'Always'},
-                           tooltip={"placement": "top", "always_visible": False}),
-                         style={"paddingBottom": "28px"})
+                           included=True),
             ], md=4),
             dbc.Col([
                 dbc.Label("Meals per Day (NCP)", className="form-label"),
-                html.Div(dcc.Slider(id='inp-ncp', min=1, max=4, step=1, value=3,
+                dcc.Slider(id='inp-ncp', min=1, max=4, step=1, value=3,
                            marks={1: '1', 2: '2', 3: '3', 4: '4+'},
-                           tooltip={"placement": "top", "always_visible": False}),
-                         style={"paddingBottom": "28px"})
+                           included=True),
             ], md=4),
             dbc.Col([
                 dbc.Label("Water Intake (CH2O)", className="form-label"),
-                html.Div(dcc.Slider(id='inp-ch2o', min=1, max=3, step=0.5, value=2,
+                dcc.Slider(id='inp-ch2o', min=1, max=3, step=0.5, value=2,
                            marks={1: '<1L', 2: '1-2L', 3: '>2L'},
-                           tooltip={"placement": "top", "always_visible": False}),
-                         style={"paddingBottom": "28px"})
+                           included=True),
             ], md=4),
-        ]),
+        ], className="mb-3"),
     ], className="form-section"),
 
     # Section 3: Lifestyle
@@ -614,21 +611,21 @@ tab5 = dbc.Container([
                 dcc.Slider(id='inp-faf', min=0, max=3, step=1, value=1,
                            marks={0: 'None', 1: '1-2 days', 2: '2-4 days', 3: '4-5 days'},
                            included=True),
-            ], md=6),
+            ], md=12),
+        ], className="mb-4"),
+        dbc.Row([
             dbc.Col([
                 dbc.Label("Screen Time (TUE)", className="form-label"),
                 dcc.Slider(id='inp-tue', min=0, max=2, step=1, value=1,
                            marks={0: '0-2 hrs', 1: '3-5 hrs', 2: '5+ hrs'},
                            included=True),
             ], md=6),
-        ], className="mb-4"),
-        dbc.Row([
             dbc.Col([
                 dbc.Label("Transportation", className="form-label"),
                 make_dropdown('inp-mtrans',
                     ['Automobile', 'Motorbike', 'Bike', 'Public_Transportation', 'Walking'],
                     'Public_Transportation')
-            ], md=4),
+            ], md=6),
         ], className="mb-3"),
         dbc.Row([
             dbc.Col([
