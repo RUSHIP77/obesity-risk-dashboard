@@ -647,7 +647,7 @@ tab5 = dbc.Container([
 # ============================================================
 color_mode_switch = html.Span([
     dbc.Label(className="fa fa-moon", html_for="color-mode-switch"),
-    dbc.Switch(id="color-mode-switch", value=False,
+    dbc.Switch(id="color-mode-switch", value=True,
                className="d-inline-block ms-1", persistence=True),
     dbc.Label(className="fa fa-sun", html_for="color-mode-switch"),
 ], className="theme-toggle-wrap")
