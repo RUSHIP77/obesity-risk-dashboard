@@ -607,25 +607,23 @@ tab5 = dbc.Container([
         html.Div("Lifestyle & Activity", className="form-section-title"),
         dbc.Row([
             dbc.Col([
-                dbc.Label("Physical Activity (FAF)", className="form-label"),
+                dbc.Label("Activity (days/wk)", className="form-label"),
                 dcc.Slider(id='inp-faf', min=0, max=3, step=1, value=1,
-                           marks={0: 'None', 1: '1-2 days', 2: '2-4 days', 3: '4-5 days'},
+                           marks={0: '0', 1: '1-2', 2: '2-4', 3: '4-5'},
                            included=True),
-            ], md=12),
-        ], className="mb-4"),
-        dbc.Row([
+            ], md=4),
             dbc.Col([
-                dbc.Label("Screen Time (TUE)", className="form-label"),
+                dbc.Label("Screen Time (hrs)", className="form-label"),
                 dcc.Slider(id='inp-tue', min=0, max=2, step=1, value=1,
-                           marks={0: '0-2 hrs', 1: '3-5 hrs', 2: '5+ hrs'},
+                           marks={0: '0-2', 1: '3-5', 2: '5+'},
                            included=True),
-            ], md=6),
+            ], md=4),
             dbc.Col([
                 dbc.Label("Transportation", className="form-label"),
                 make_dropdown('inp-mtrans',
                     ['Automobile', 'Motorbike', 'Bike', 'Public_Transportation', 'Walking'],
                     'Public_Transportation')
-            ], md=6),
+            ], md=4),
         ], className="mb-3"),
         dbc.Row([
             dbc.Col([
