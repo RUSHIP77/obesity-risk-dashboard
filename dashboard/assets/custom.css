@@ -495,8 +495,8 @@ h1, h2, h3, h4, h5, h6 {
     padding: 28px 28px 20px 28px;
     margin-bottom: 20px;
     overflow: visible;
-    position: relative;
-    z-index: 1;
+    /* NO position/z-index here — it would create a stacking context
+       that traps dropdown menus behind the next form-section card */
 }
 [data-theme="light"] .form-section {
     border: 0.5px solid rgba(0, 0, 0, 0.06) !important;
@@ -857,10 +857,25 @@ div[data-dash-is-loading] input[type="number"] {
     background-clip: text;
 }
 
-/* ════════ DROPDOWN Z-INDEX FIX ════════ */
-.dash-dropdown {
+/* ════════ DROPDOWN Z-INDEX + OVERFLOW FIX ════════ */
+/* Only create stacking context when dropdown is OPEN — avoids trapping
+   closed dropdowns at a high z-index that covers other content */
+.dash-dropdown-wrapper {
     position: relative;
-    z-index: 10;
+}
+.dash-dropdown-wrapper:has([data-state="open"]) {
+    z-index: 9999;
+}
+.dash-dropdown-content {
+    max-height: 300px !important;
+    overflow-y: auto !important;
+}
+/* Keep search box sticky at top while options scroll */
+.dash-dropdown-search-container {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1;
+    background: var(--Dash-Fill-Inverse-Strong) !important;
 }
 
 /* ════════ PLOTLY MODEBAR HIDE ════════ */

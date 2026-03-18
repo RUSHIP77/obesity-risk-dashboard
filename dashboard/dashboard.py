@@ -707,14 +707,29 @@ app.layout = html.Div([
 # ============================================================
 @app.callback(Output('feature-dist-graph', 'figure'), Input('feature-select', 'value'))
 def update_feature_dist(feature):
+    # Use abbreviated labels for x-axis readability
+    SHORT_LABELS = {
+        'Insufficient Weight': 'Insuff.\nWeight',
+        'Normal Weight': 'Normal\nWeight',
+        'Overweight Level I': 'Overweight\nLevel I',
+        'Overweight Level II': 'Overweight\nLevel II',
+        'Obesity Type I': 'Obesity\nType I',
+        'Obesity Type II': 'Obesity\nType II',
+        'Obesity Type III': 'Obesity\nType III',
+    }
     fig = px.box(df, x='Obesity_Label', y=feature,
                  category_orders={'Obesity_Label': LABEL_ORDER},
                  color='Obesity_Label', color_discrete_map=LABEL_COLORS,
                  title=f'{feature} Distribution by Obesity Level')
-    fig.update_layout(showlegend=False, xaxis_tickangle=-35, height=420,
+    fig.update_layout(showlegend=False, height=420,
                        xaxis_title="", yaxis_title=feature,
-                       margin=dict(l=56, r=16, t=56, b=120),
-                       xaxis=dict(tickfont=dict(size=10)))
+                       margin=dict(l=56, r=16, t=56, b=100),
+                       xaxis=dict(
+                           tickfont=dict(size=10),
+                           tickangle=0,
+                           tickvals=LABEL_ORDER,
+                           ticktext=[SHORT_LABELS.get(l, l) for l in LABEL_ORDER],
+                       ))
     return fig
 
 @app.callback(Output('scatter-graph', 'figure'),
