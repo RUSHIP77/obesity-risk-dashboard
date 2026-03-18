@@ -1,7 +1,7 @@
 /**
  * Hide slider input boxes that Dash renders next to sliders.
  * These overlap with mark labels. The slider marks already show the value.
- * Uses MutationObserver to catch dynamically rendered elements.
+ * Uses a debounced MutationObserver to catch dynamically rendered elements.
  */
 (function() {
     'use strict';
@@ -19,20 +19,25 @@
         });
     }
 
-    // Run on load
+    function setupObserver() {
+        var timeout;
+        var observer = new MutationObserver(function() {
+            clearTimeout(timeout);
+            timeout = setTimeout(hideSliderInputs, 100);
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+    }
+
+    // Run on load — defer observer until DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function() {
             setTimeout(hideSliderInputs, 300);
             setTimeout(hideSliderInputs, 1000);
+            setupObserver();
         });
     } else {
         setTimeout(hideSliderInputs, 300);
         setTimeout(hideSliderInputs, 1000);
+        setupObserver();
     }
-
-    // MutationObserver for dynamic content
-    var observer = new MutationObserver(function() {
-        hideSliderInputs();
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
 })();

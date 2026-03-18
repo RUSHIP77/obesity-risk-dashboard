@@ -11,7 +11,8 @@ PROJECT SUMMARY: Predicting Childhood Obesity via Lifestyle Factors
 
 3. K-Means identified 4 distinct behavioral risk groups
 
-4. Top 3 Modifiable Risk Factors (from Decision Tree feature importance):
-   1. FCVC (importance: 0.1809)
-   2. TUE (importance: 0.1686)
-   3. Age (importance: 0.1320)
+4. Top 3 Risk Factors (from Decision Tree feature importance — used because
+   tree-based models provide direct feature importance; KNN does not):
+   1. FCVC — Vegetable consumption frequency (importance: 0.1809)
+   2. TUE — Screen time / technology use (importance: 0.1686)
+   3. Age (importance: 0.1320) — Note: Age is non-modifiable; top modifiable factors are FCVC and TUE
