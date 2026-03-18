@@ -617,31 +617,21 @@ input, select, textarea {
 /* Disabled */
 .rc-slider-disabled { background-color: transparent !important; opacity: 0.5 !important; }
 
-/* DCC Slider current value input box */
+/* DCC Slider value input box — HIDDEN because tooltip shows value on hover.
+   The input box overlaps with the last mark label on narrow columns. */
 .dash-slider input[type="number"],
 .dash-slider .rc-slider-handle + div,
 div[class*="slider"] input,
 .rc-slider + input,
 input.rc-slider-input,
 .dash-slider input {
-    background-color: var(--bg-card-solid) !important;
-    border: 1px solid var(--border-solid) !important;
-    color: var(--text-primary) !important;
-    border-radius: 6px !important;
-    font-size: 13px !important;
-    font-weight: 600 !important;
-    padding: 4px 8px !important;
-    width: 44px !important;
-    text-align: center !important;
+    display: none !important;
 }
 
-/* Target the Dash slider's input container */
+/* Target the Dash slider's input container — also hidden */
 .dash-slider > div:last-child input,
 div[data-dash-is-loading] input[type="number"] {
-    background-color: var(--bg-card-solid) !important;
-    border: 1px solid var(--border-solid) !important;
-    color: var(--text-primary) !important;
-    border-radius: 6px !important;
+    display: none !important;
 }
 
 [data-theme="light"] .rc-slider-handle {
