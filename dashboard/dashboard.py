@@ -1,7 +1,7 @@
 import matplotlib
 matplotlib.use('Agg')
 import dash
-from dash import dcc, html, Input, Output, State, dash_table
+from dash import dcc, html, Input, Output, State, dash_table, clientside_callback, Patch
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import plotly.graph_objects as go
@@ -18,47 +18,73 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 PROJECT = os.path.dirname(BASE)
 
 # ============================================================
-# Custom Plotly Template
+# Custom Plotly Templates (Dark + Light)
 # ============================================================
 CHART_COLORS = ["#3B9AE8", "#2DD4BF", "#FBBF24", "#A78BFA",
                 "#34D399", "#F472B6", "#FB923C", "#94A3B8"]
 
-pio.templates["health_dark"] = go.layout.Template(
-    layout=go.Layout(
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(family="Inter, sans-serif", size=13, color="#94A3B8"),
-        title=dict(font=dict(family="Manrope, sans-serif", size=17,
-                              color="#F1F5F9"), x=0, xanchor="left",
-                   pad=dict(l=4, t=4)),
-        xaxis=dict(
-            gridcolor="rgba(42,47,69,0.5)", gridwidth=1, griddash="dot",
-            zeroline=False, linecolor="#2A2F45", linewidth=1,
-            tickfont=dict(size=11, color="#64748B"),
-            title_font=dict(size=13, color="#94A3B8"),
-        ),
-        yaxis=dict(
-            gridcolor="rgba(42,47,69,0.5)", gridwidth=1, griddash="dot",
-            zeroline=False, linecolor="#2A2F45", linewidth=1,
-            tickfont=dict(size=11, color="#64748B"),
-            title_font=dict(size=13, color="#94A3B8"),
-        ),
-        colorway=CHART_COLORS,
-        legend=dict(
-            bgcolor="rgba(0,0,0,0)", borderwidth=0,
-            font=dict(size=13, color="#CBD5E1"),
-        ),
-        hoverlabel=dict(
-            bgcolor="#1E2235", bordercolor="#2A2F45",
-            font=dict(family="Inter, sans-serif", size=13, color="#F1F5F9"),
-        ),
-        margin=dict(l=48, r=16, t=56, b=48),
-    ),
-    data=dict(
-        bar=[go.Bar(marker=dict(cornerradius=4, line=dict(width=0)))],
-        scatter=[go.Scatter(marker=dict(size=8, line=dict(width=1, color="#141821")))],
-    ),
-)
+FONT = ('Inter, -apple-system, BlinkMacSystemFont, "SF Pro Display", '
+        '"Helvetica Neue", Arial, sans-serif')
+
+COLORWAY = [
+    "#0A84FF", "#30D158", "#FF9F0A", "#FF375F", "#BF5AF2",
+    "#64D2FF", "#FFD60A", "#FF6482", "#AC8E68", "#5E5CE6",
+]
+
+def _axis(grid, zeroline, axis_line, text_color, label_color):
+    return dict(
+        showgrid=True, gridwidth=1, gridcolor=grid,
+        zeroline=True, zerolinewidth=1, zerolinecolor=zeroline,
+        showline=True, linewidth=1, linecolor=axis_line,
+        ticks="outside", ticklen=4, tickcolor=axis_line,
+        tickfont=dict(family=FONT, size=12, color=text_color),
+        title=dict(standoff=12, font=dict(family=FONT, size=13, color=label_color)),
+    )
+
+# -- DARK TEMPLATE --
+pio.templates["health_dark"] = go.layout.Template(layout=go.Layout(
+    paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+    font=dict(family=FONT, size=13, color="#E2E8F0"),
+    title=dict(font=dict(family=FONT, size=20, color="#F1F5F9"), x=0, xanchor="left"),
+    xaxis=_axis("rgba(148,163,184,0.12)", "rgba(148,163,184,0.2)",
+                "rgba(148,163,184,0.15)", "#94A3B8", "#94A3B8"),
+    yaxis=_axis("rgba(148,163,184,0.12)", "rgba(148,163,184,0.2)",
+                "rgba(148,163,184,0.15)", "#94A3B8", "#94A3B8"),
+    colorway=COLORWAY,
+    colorscale=dict(sequential=[[0, "#0C1929"], [0.5, "#0A84FF"], [1, "#30D158"]]),
+    legend=dict(bgcolor="rgba(30,34,53,0.8)", bordercolor="rgba(148,163,184,0.15)",
+                borderwidth=1, font=dict(family=FONT, size=12, color="#E2E8F0"),
+                orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
+    hoverlabel=dict(bgcolor="rgba(30,34,53,0.95)", bordercolor="rgba(148,163,184,0.2)",
+                    font=dict(family=FONT, size=13, color="#E2E8F0")),
+    hovermode="x unified",
+    margin=dict(l=48, r=24, t=64, b=48),
+), data=dict(
+    bar=[go.Bar(marker=dict(cornerradius=4, line=dict(width=0)), opacity=0.9)],
+    scatter=[go.Scatter(line=dict(width=2.5), marker=dict(size=7))],
+))
+
+# -- LIGHT TEMPLATE --
+pio.templates["health_light"] = go.layout.Template(layout=go.Layout(
+    paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+    font=dict(family=FONT, size=13, color="#1D1D1F"),
+    title=dict(font=dict(family=FONT, size=20, color="#1D1D1F"), x=0, xanchor="left"),
+    xaxis=_axis("#E5E5EA", "#D1D1D6", "#C7C7CC", "#6E6E73", "#6E6E73"),
+    yaxis=_axis("#E5E5EA", "#D1D1D6", "#C7C7CC", "#6E6E73", "#6E6E73"),
+    colorway=COLORWAY,
+    colorscale=dict(sequential=[[0, "#D1ECFF"], [0.5, "#0A84FF"], [1, "#30D158"]]),
+    legend=dict(bgcolor="rgba(255,255,255,0.8)", bordercolor="#E5E5EA",
+                borderwidth=1, font=dict(family=FONT, size=12, color="#1D1D1F"),
+                orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
+    hoverlabel=dict(bgcolor="rgba(255,255,255,0.95)", bordercolor="#D1D1D6",
+                    font=dict(family=FONT, size=13, color="#1D1D1F")),
+    hovermode="x unified",
+    margin=dict(l=48, r=24, t=64, b=48),
+), data=dict(
+    bar=[go.Bar(marker=dict(cornerradius=4, line=dict(width=0)), opacity=0.9)],
+    scatter=[go.Scatter(line=dict(width=2.5), marker=dict(size=7))],
+))
+
 pio.templates.default = "health_dark"
 CHART_CONFIG = {"displayModeBar": False, "scrollZoom": False, "responsive": True}
 
@@ -120,11 +146,44 @@ app = dash.Dash(
     __name__,
     external_stylesheets=[
         dbc.themes.DARKLY,
+        dbc.icons.FONT_AWESOME,
         "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap"
     ],
     suppress_callback_exceptions=True
 )
 app.title = "Childhood Obesity Risk Screening Dashboard"
+
+# FOUC prevention: set theme before first paint
+app.index_string = '''
+<!DOCTYPE html>
+<html>
+<head>
+    {%metas%}
+    <title>{%title%}</title>
+    {%favicon%}
+    {%css%}
+    <script>
+        (function() {
+            var theme = localStorage.getItem('dashTheme');
+            if (!theme) {
+                theme = window.matchMedia('(prefers-color-scheme: dark)').matches
+                    ? 'dark' : 'light';
+            }
+            document.documentElement.setAttribute('data-bs-theme', theme);
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+</head>
+<body>
+    {%app_entry%}
+    <footer>
+        {%config%}
+        {%scripts%}
+        {%renderer%}
+    </footer>
+</body>
+</html>
+'''
 
 # ============================================================
 # Tab 1: Overview
@@ -170,7 +229,7 @@ fig_donut.add_annotation(text=f"<b>Total</b><br>{len(df):,}",
                           font=dict(size=16, color="#F1F5F9", family="Manrope"),
                           showarrow=False)
 fig_donut.update_layout(title="Obesity Level Distribution", height=420,
-                         legend=dict(font=dict(size=11)))
+                         legend=dict(font=dict(size=12)))
 
 # BMI Histogram
 fig_bmi = px.histogram(df, x='BMI', color='Obesity_Label',
@@ -578,17 +637,35 @@ tab5 = dbc.Container([
 ], fluid=True)
 
 # ============================================================
+# Theme Toggle Component
+# ============================================================
+color_mode_switch = html.Span([
+    dbc.Label(className="fa fa-moon", html_for="color-mode-switch"),
+    dbc.Switch(id="color-mode-switch", value=True,
+               className="d-inline-block ms-1", persistence=True),
+    dbc.Label(className="fa fa-sun", html_for="color-mode-switch"),
+], className="theme-toggle-wrap")
+
+# ============================================================
 # Main Layout
 # ============================================================
 app.layout = html.Div([
+    dcc.Store(id="theme-store"),
     html.Div([
-        html.H1("Childhood Obesity Risk Screening Dashboard",
-                className="text-gradient",
-                style={"fontSize": "1.6rem", "fontWeight": "700",
-                       "textAlign": "center", "padding": "20px 0 16px",
-                       "margin": "0", "fontFamily": "Manrope, sans-serif"}),
-    ], style={"borderBottom": "1px solid #2A2F45",
-              "background": "rgba(15,17,23,0.85)",
+        html.Div([
+            html.H1("Childhood Obesity Risk Screening Dashboard",
+                    className="text-gradient",
+                    style={"fontSize": "1.6rem", "fontWeight": "700",
+                           "padding": "20px 0 16px",
+                           "margin": "0", "fontFamily": "Manrope, sans-serif",
+                           "flex": "1", "textAlign": "center"}),
+            html.Div(color_mode_switch,
+                     style={"position": "absolute", "right": "24px", "top": "50%",
+                            "transform": "translateY(-50%)"}),
+        ], style={"display": "flex", "alignItems": "center", "justifyContent": "center",
+                  "position": "relative"}),
+    ], style={"borderBottom": "1px solid var(--border-solid)",
+              "background": "var(--navbar-bg)",
               "backdropFilter": "blur(16px)"}),
     dbc.Tabs([
         dbc.Tab(tab1, label="Overview", tab_id="tab-overview",
@@ -840,6 +917,46 @@ def predict(n_clicks, gender, age, height, weight, fh, favc,
 
     except Exception as e:
         return dbc.Alert(f"Error: {str(e)}", color="danger")
+
+
+# ============================================================
+# Theme Toggle Callbacks
+# ============================================================
+
+# Clientside: toggle data-bs-theme + data-theme + persist to localStorage
+clientside_callback(
+    """
+    (switchOn) => {
+        const theme = switchOn ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-bs-theme', theme);
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('dashTheme', theme);
+        return theme;
+    }
+    """,
+    Output("theme-store", "data"),
+    Input("color-mode-switch", "value"),
+)
+
+# IDs of all Graph components that need template switching
+_GRAPH_IDS = [
+    "feature-dist-graph", "scatter-graph",
+]
+
+# Server-side: switch Plotly templates on all static figures
+@app.callback(
+    [Output(gid, "figure", allow_duplicate=True) for gid in _GRAPH_IDS],
+    Input("color-mode-switch", "value"),
+    prevent_initial_call=True,
+)
+def switch_chart_templates(switch_on):
+    template = pio.templates["health_light" if switch_on else "health_dark"]
+    results = []
+    for _ in _GRAPH_IDS:
+        patched = Patch()
+        patched["layout"]["template"] = template
+        results.append(patched)
+    return results
 
 
 server = app.server
