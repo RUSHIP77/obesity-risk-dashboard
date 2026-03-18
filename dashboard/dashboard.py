@@ -46,7 +46,7 @@ pio.templates["health_dark"] = go.layout.Template(
         colorway=CHART_COLORS,
         legend=dict(
             bgcolor="rgba(0,0,0,0)", borderwidth=0,
-            font=dict(size=11, color="#94A3B8"),
+            font=dict(size=13, color="#CBD5E1"),
         ),
         hoverlabel=dict(
             bgcolor="#1E2235", bordercolor="#2A2F45",
@@ -56,7 +56,7 @@ pio.templates["health_dark"] = go.layout.Template(
     ),
     data=dict(
         bar=[go.Bar(marker=dict(cornerradius=4, line=dict(width=0)))],
-        scatter=[go.Scatter(marker=dict(size=8, line=dict(width=1, color="#0F1117")))],
+        scatter=[go.Scatter(marker=dict(size=8, line=dict(width=1, color="#141821")))],
     ),
 )
 pio.templates.default = "health_dark"
@@ -152,7 +152,7 @@ fig_donut = go.Figure(data=[go.Pie(
     labels=[c.replace('_', ' ') for c in counts.index],
     values=counts.values, hole=0.55,
     marker=dict(colors=[OBESITY_COLORS[c] for c in counts.index],
-                line=dict(color='#0F1117', width=2)),
+                line=dict(color='#141821', width=2)),
     textinfo='percent', textfont=dict(size=12, color='#F1F5F9'),
     hovertemplate='<b>%{label}</b><br>Count: %{value}<br>Share: %{percent}<extra></extra>',
 )])
@@ -168,7 +168,7 @@ fig_bmi = px.histogram(df, x='BMI', color='NObeyesdad',
                         color_discrete_map=OBESITY_COLORS,
                         title="BMI Distribution by Obesity Level", nbins=50)
 fig_bmi.update_layout(height=420, legend_title_text="",
-                       legend=dict(font=dict(size=10)),
+                       legend=dict(font=dict(size=12, color="#CBD5E1")),
                        xaxis_title="BMI (kg/m²)", yaxis_title="Count")
 
 tab1 = dbc.Container([
@@ -222,7 +222,8 @@ fig_corr = go.Figure(go.Heatmap(
     xgap=2, ygap=2, showscale=True,
     colorbar=dict(tickfont=dict(color="#64748B")),
 ))
-fig_corr.update_layout(title="Feature Correlation Heatmap", height=450)
+fig_corr.update_layout(title="Feature Correlation Heatmap", height=450,
+                        margin=dict(l=48, r=60, t=56, b=48))
 
 tab2 = dbc.Container([
     html.Div(style={"height": "16px"}),
@@ -294,7 +295,7 @@ labels_short = [c.replace('_', ' ').replace('Level ', 'L').replace('Type ', 'T')
 cm_dt = confusion_matrix(y_test_cls, dt_model.predict(X_test_cls))
 fig_cm_dt = go.Figure(go.Heatmap(
     z=cm_dt, x=labels_short, y=labels_short,
-    colorscale=[[0, "#0F1117"], [0.5, "#1A3A5C"], [1, "#3B9AE8"]],
+    colorscale=[[0, "#141821"], [0.5, "#1A3A5C"], [1, "#3B9AE8"]],
     text=cm_dt, texttemplate='%{text}', textfont=dict(size=13, color="#F1F5F9"),
     xgap=3, ygap=3, showscale=False,
 ))
@@ -304,7 +305,7 @@ fig_cm_dt.update_layout(title="Decision Tree — Confusion Matrix", height=420,
 cm_knn = confusion_matrix(y_test_cls, knn_model.predict(X_test_cls_scaled))
 fig_cm_knn = go.Figure(go.Heatmap(
     z=cm_knn, x=labels_short, y=labels_short,
-    colorscale=[[0, "#0F1117"], [0.5, "#1A3A5C"], [1, "#2DD4BF"]],
+    colorscale=[[0, "#141821"], [0.5, "#1A3A5C"], [1, "#2DD4BF"]],
     text=cm_knn, texttemplate='%{text}', textfont=dict(size=13, color="#F1F5F9"),
     xgap=3, ygap=3, showscale=False,
 ))
@@ -368,8 +369,8 @@ fig_pca = px.scatter(pca_df, x='PC1', y='PC2', color='Cluster',
                       opacity=0.65,
                       labels={'PC1': f'PC1 ({pca_model.explained_variance_ratio_[0]*100:.1f}%)',
                               'PC2': f'PC2 ({pca_model.explained_variance_ratio_[1]*100:.1f}%)'})
-fig_pca.update_traces(marker=dict(size=7, line=dict(width=1, color='#0F1117')))
-fig_pca.update_layout(height=460, legend=dict(font=dict(size=10)))
+fig_pca.update_traces(marker=dict(size=7, line=dict(width=1, color='#141821')))
+fig_pca.update_layout(height=460, legend=dict(font=dict(size=12, color="#CBD5E1")))
 
 # Radar chart
 radar_features = ['FAF', 'TUE', 'FCVC', 'FAVC', 'CH2O', 'NCP', 'CAEC', 'CALC']
@@ -399,7 +400,7 @@ fig_radar.update_layout(
         angularaxis=dict(gridcolor='#2A2F45', linecolor='#2A2F45',
                          tickfont=dict(size=12, color="#94A3B8")),
     ),
-    legend=dict(font=dict(size=10)),
+    legend=dict(font=dict(size=12, color="#CBD5E1")),
 )
 
 tab4 = dbc.Container([
@@ -608,8 +609,8 @@ def update_scatter(x_feat, y_feat):
                      category_orders={'NObeyesdad': OBESITY_ORDER},
                      color_discrete_map=OBESITY_COLORS,
                      title=f'{x_feat} vs {y_feat}', opacity=0.6)
-    fig.update_traces(marker=dict(size=6, line=dict(width=1, color='#0F1117')))
-    fig.update_layout(height=380, legend=dict(font=dict(size=9)))
+    fig.update_traces(marker=dict(size=6, line=dict(width=1, color='#141821')))
+    fig.update_layout(height=380, legend=dict(font=dict(size=12, color="#CBD5E1")))
     return fig
 
 @app.callback(

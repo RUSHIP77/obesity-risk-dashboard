@@ -13,7 +13,7 @@
     --success: #34D399;
     --warning: #FBBF24;
     --danger: #F87171;
-    --bg-main: #0F1117;
+    --bg-main: #141821;
     --bg-section: #1A1D2E;
     --bg-card: rgba(30, 34, 53, 0.7);
     --bg-card-solid: #1E2235;
@@ -44,7 +44,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* --- Animated Gradient Background --- */
 .gradient-bg {
-    background: linear-gradient(135deg, #0F1117 0%, #1A1D2E 40%, #0F1117 70%, #131628 100%);
+    background: linear-gradient(135deg, #141821 0%, #1A1D2E 40%, #141821 70%, #161B2A 100%);
     min-height: 100vh;
     position: relative;
 }
@@ -386,7 +386,7 @@ input, select, textarea,
 [class*="placeholder"],
 [class*="indicatorContainer"],
 [class*="ValueContainer"] {
-    color: var(--text-primary) !important;
+    color: #FFFFFF !important;
 }
 [class*="control"] {
     background-color: var(--bg-card-solid) !important;
@@ -396,14 +396,15 @@ input, select, textarea,
     background-color: var(--bg-card-solid) !important;
     border: 1px solid var(--border) !important;
     box-shadow: 0 8px 24px rgba(0,0,0,0.4) !important;
+    z-index: 9999 !important;
 }
 [class*="option"] {
     background-color: var(--bg-card-solid) !important;
-    color: var(--text-primary) !important;
+    color: #F1F5F9 !important;
 }
 [class*="option"]:hover,
 [class*="option"][class*="focused"] {
-    background-color: rgba(59,154,232,0.2) !important;
+    background-color: rgba(59,154,232,0.25) !important;
     color: #fff !important;
 }
 [class*="indicatorSeparator"] {
@@ -411,7 +412,32 @@ input, select, textarea,
 }
 [class*="dropdownIndicator"] svg,
 [class*="clearIndicator"] svg {
-    fill: var(--text-muted) !important;
+    fill: var(--text-secondary) !important;
+}
+
+/* NUCLEAR: Force ALL Dash dropdown text white */
+.dash-dropdown .Select-value-label,
+.dash-dropdown .Select-value,
+.dash-dropdown .Select-placeholder,
+.dash-dropdown input {
+    color: #FFFFFF !important;
+}
+.dash-dropdown .Select-control {
+    background-color: #1E2235 !important;
+    border-color: #2A2F45 !important;
+}
+.dash-dropdown .Select-menu-outer {
+    background-color: #1E2235 !important;
+    border-color: #2A2F45 !important;
+    z-index: 9999 !important;
+}
+.dash-dropdown .Select-option {
+    background-color: #1E2235 !important;
+    color: #F1F5F9 !important;
+}
+.dash-dropdown .Select-option.is-focused {
+    background-color: rgba(59,154,232,0.25) !important;
+    color: #FFFFFF !important;
 }
 
 /* Dash Slider Dark Override */
@@ -425,7 +451,34 @@ input, select, textarea,
 }
 .rc-slider-rail { background-color: var(--border) !important; }
 .rc-slider-dot { background: var(--border) !important; border-color: var(--border) !important; }
-.rc-slider-mark-text { color: var(--text-secondary) !important; font-size: 12px !important; font-weight: 500 !important; }
+.rc-slider-mark-text { color: #94A3B8 !important; font-size: 12px !important; font-weight: 500 !important; }
+.rc-slider-mark-text-active { color: #F1F5F9 !important; }
+
+/* Slider tooltip/value box — dark theme */
+.rc-slider-tooltip { z-index: 9999; }
+.rc-slider-tooltip-inner {
+    background-color: #1E2235 !important;
+    border: 1px solid #2A2F45 !important;
+    color: #F1F5F9 !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    border-radius: 6px !important;
+    padding: 4px 10px !important;
+}
+.rc-slider-tooltip-arrow { display: none !important; }
+
+/* DCC Slider current value input box */
+.dash-slider input[type="number"],
+.dash-slider .rc-slider-handle + div,
+div[class*="slider"] input {
+    background-color: #1E2235 !important;
+    border: 1px solid #2A2F45 !important;
+    color: #F1F5F9 !important;
+    border-radius: 6px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+}
 
 /* Radio Items & Checkboxes */
 .form-check-input:checked {
