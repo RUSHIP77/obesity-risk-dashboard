@@ -223,8 +223,8 @@ fig_donut.add_annotation(text=f"<b>Total</b><br>{len(df):,}",
                           font=dict(size=16, color="#F1F5F9", family="Manrope"),
                           showarrow=False)
 fig_donut.update_layout(title="Obesity Level Distribution", height=420,
-                         legend=dict(font=dict(size=11), orientation="v",
-                                     yanchor="middle", y=0.5, xanchor="right", x=1.15))
+                         legend=dict(font=dict(size=11), orientation="h",
+                                     yanchor="top", y=-0.05, xanchor="center", x=0.5))
 
 # BMI Histogram
 fig_bmi = px.histogram(df, x='BMI', color='Obesity_Label',
@@ -369,7 +369,7 @@ fig_cm_dt = go.Figure(go.Heatmap(
 ))
 fig_cm_dt.update_layout(title="Decision Tree — Confusion Matrix", height=450,
                          xaxis_title="Predicted", yaxis_title="Actual",
-                         margin=dict(l=80, r=16, t=56, b=80),
+                         margin=dict(l=100, r=16, t=56, b=80),
                          xaxis=dict(tickangle=-35))
 
 cm_knn = confusion_matrix(y_test_cls, knn_model.predict(X_test_cls_scaled))
@@ -381,7 +381,7 @@ fig_cm_knn = go.Figure(go.Heatmap(
 ))
 fig_cm_knn.update_layout(title="KNN — Confusion Matrix", height=450,
                           xaxis_title="Predicted", yaxis_title="Actual",
-                          margin=dict(l=80, r=16, t=56, b=80),
+                          margin=dict(l=100, r=16, t=56, b=80),
                           xaxis=dict(tickangle=-35))
 
 tab3 = dbc.Container([
@@ -443,8 +443,8 @@ fig_pca = px.scatter(pca_df, x='PC1', y='PC2', color='Cluster',
                               'PC2': f'PC2 ({pca_model.explained_variance_ratio_[1]*100:.1f}%)'})
 fig_pca.update_traces(marker=dict(size=7, line=dict(width=1, color='#141821')))
 fig_pca.update_layout(height=460, legend=dict(font=dict(size=10, color="#CBD5E1"),
-                      orientation="h", yanchor="top", y=-0.12, xanchor="center", x=0.5),
-                      margin=dict(l=56, r=16, t=56, b=80))
+                      orientation="h", yanchor="top", y=-0.18, xanchor="center", x=0.5),
+                      margin=dict(l=56, r=16, t=56, b=100))
 
 # Radar chart
 radar_features = ['FAF', 'TUE', 'FCVC', 'FAVC', 'CH2O', 'NCP', 'CAEC', 'CALC']
@@ -475,8 +475,8 @@ fig_radar.update_layout(
                          tickfont=dict(size=12, color="#94A3B8")),
     ),
     legend=dict(font=dict(size=10, color="#CBD5E1"),
-               orientation="h", yanchor="top", y=-0.15, xanchor="center", x=0.5),
-    margin=dict(l=56, r=56, t=56, b=80),
+               orientation="h", yanchor="top", y=-0.22, xanchor="center", x=0.5),
+    margin=dict(l=56, r=56, t=56, b=100),
 )
 
 tab4 = dbc.Container([
@@ -569,21 +569,21 @@ tab5 = dbc.Container([
                 html.Div(dcc.Slider(id='inp-fcvc', min=1, max=3, step=0.5, value=2,
                            marks={1: 'Never', 2: 'Sometimes', 3: 'Always'},
                            tooltip={"placement": "top", "always_visible": False}),
-                         style={"paddingBottom": "20px"})
+                         style={"paddingBottom": "28px"})
             ], md=4),
             dbc.Col([
                 dbc.Label("Meals per Day (NCP)", className="form-label"),
                 html.Div(dcc.Slider(id='inp-ncp', min=1, max=4, step=1, value=3,
                            marks={1: '1', 2: '2', 3: '3', 4: '4+'},
                            tooltip={"placement": "top", "always_visible": False}),
-                         style={"paddingBottom": "20px"})
+                         style={"paddingBottom": "28px"})
             ], md=4),
             dbc.Col([
                 dbc.Label("Water Intake (CH2O)", className="form-label"),
                 html.Div(dcc.Slider(id='inp-ch2o', min=1, max=3, step=0.5, value=2,
                            marks={1: '<1L', 2: '1-2L', 3: '>2L'},
                            tooltip={"placement": "top", "always_visible": False}),
-                         style={"paddingBottom": "20px"})
+                         style={"paddingBottom": "28px"})
             ], md=4),
         ]),
     ], className="form-section"),
@@ -597,14 +597,14 @@ tab5 = dbc.Container([
                 html.Div(dcc.Slider(id='inp-faf', min=0, max=3, step=1, value=1,
                            marks={0: 'None', 1: '1-2 days', 2: '2-4 days', 3: '4-5 days'},
                            tooltip={"placement": "top", "always_visible": False}),
-                         style={"paddingBottom": "20px"})
+                         style={"paddingBottom": "28px"})
             ], md=4),
             dbc.Col([
                 dbc.Label("Screen Time (TUE)", className="form-label"),
                 html.Div(dcc.Slider(id='inp-tue', min=0, max=2, step=1, value=1,
                            marks={0: '0-2 hrs', 1: '3-5 hrs', 2: '5+ hrs'},
                            tooltip={"placement": "top", "always_visible": False}),
-                         style={"paddingBottom": "20px"})
+                         style={"paddingBottom": "28px"})
             ], md=4),
             dbc.Col([
                 dbc.Label("Transportation", className="form-label"),

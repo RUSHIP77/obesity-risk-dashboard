@@ -59,6 +59,19 @@
     --loading-bg:       rgba(15,17,23,0.5);
     --scrollbar-thumb:  rgba(148, 163, 184, 0.15);
     --scrollbar-hover:  #7B8BA0;
+
+    /* Dash 4.0 Radix UI dropdown variables */
+    --Dash-Fill-Inverse-Strong: #1E2235;
+    --Dash-Stroke-Strong: #2A2F45;
+    --Dash-Text-Strong: #E2E8F0;
+    --Dash-Text-Weak: #94A3B8;
+    --Dash-Text-Disabled: #7B8BA0;
+    --Dash-Fill-Interactive-Strong: #3B9AE8;
+    --Dash-Fill-Interactive-Weak: rgba(59,154,232,0.15);
+    --Dash-Fill-Disabled: #2A2F45;
+    --Dash-Shading-Strong: rgba(0,0,0,0.4);
+    --Dash-Shading-Weak: rgba(0,0,0,0.2);
+    --Dash-Spacing: 4px;
 }
 
 /* ════════ LIGHT THEME OVERRIDES ════════ */
@@ -110,6 +123,19 @@
     --loading-bg:       rgba(245,245,247,0.5);
     --scrollbar-thumb:  rgba(0, 0, 0, 0.15);
     --scrollbar-hover:  #86868B;
+
+    /* Dash 4.0 Radix UI dropdown variables */
+    --Dash-Fill-Inverse-Strong: #FFFFFF;
+    --Dash-Stroke-Strong: #D1D1D6;
+    --Dash-Text-Strong: #1D1D1F;
+    --Dash-Text-Weak: #6E6E73;
+    --Dash-Text-Disabled: #86868B;
+    --Dash-Fill-Interactive-Strong: #007AFF;
+    --Dash-Fill-Interactive-Weak: rgba(0,122,255,0.08);
+    --Dash-Fill-Disabled: #E5E5EA;
+    --Dash-Shading-Strong: rgba(0,0,0,0.08);
+    --Dash-Shading-Weak: rgba(0,0,0,0.04);
+    --Dash-Spacing: 4px;
 }
 
 /* ════════ SMOOTH THEME TRANSITIONS ════════ */
@@ -524,163 +550,22 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 0 0 4px rgba(0,122,255,0.24) !important;
 }
 
-/* ════════ BULLETPROOF DROPDOWN CSS (Dash React-Select v1.x) ════════ */
+/* ════════ DASH 4.0 RADIX UI DROPDOWN STYLES ════════ */
 
-/* CONTROL BAR */
-.Select-control {
-    background-color: var(--bg-card-solid) !important;
-    border-color: var(--border-solid) !important;
-    color: var(--text-primary) !important;
-    border-radius: var(--radius-sm) !important;
-}
-[class*="-control"] {
-    background-color: var(--bg-card-solid) !important;
-    border-color: var(--border-solid) !important;
-    box-shadow: none !important;
-}
-.Select.is-focused > .Select-control {
-    background-color: var(--bg-card-solid) !important;
-    border-color: var(--primary) !important;
-    box-shadow: 0 0 0 1px rgba(59, 154, 232, 0.3) !important;
-}
-[data-theme="light"] .Select.is-focused > .Select-control {
-    box-shadow: 0 0 0 4px rgba(0,122,255,0.24) !important;
-}
-
-/* SELECTED VALUE TEXT */
-.Select-value-label { color: var(--text-primary) !important; }
-.Select--single > .Select-control .Select-value {
-    color: var(--text-primary) !important;
-    background-color: transparent !important;
-}
-[class*="-singleValue"] { color: var(--text-primary) !important; }
-
-/* PLACEHOLDER */
-.Select-placeholder {
-    color: var(--text-muted) !important;
-    background-color: var(--bg-card-solid) !important;
-}
-[class*="-placeholder"] { color: var(--text-muted) !important; }
-
-/* SEARCH INPUT */
-.Select-input > input {
-    color: var(--text-primary) !important;
-    background-color: transparent !important;
-}
-[class*="-input"] input { color: var(--text-primary) !important; }
-
-/* DROPDOWN MENU (eliminates white flash) */
-.Select-menu-outer {
-    background-color: var(--bg-card-solid) !important;
-    border-color: var(--border-solid) !important;
+/* Dropdown popup menu z-index fix */
+.dash-dropdown-content {
     z-index: 9999 !important;
 }
-.Select-menu { background-color: var(--bg-card-solid) !important; }
-[class*="-menu"] {
-    background-color: var(--bg-card-solid) !important;
-    border: 1px solid var(--border-solid) !important;
-    z-index: 9999 !important;
-}
-[class*="-menuList"] { background-color: var(--bg-card-solid) !important; }
 
-/* OPTIONS */
-.VirtualizedSelectOption {
-    background-color: var(--bg-card-solid) !important;
-    color: var(--text-primary) !important;
-}
-.VirtualizedSelectFocusedOption {
-    background-color: rgba(59, 154, 232, 0.2) !important;
-    color: var(--text-primary) !important;
-}
-.Select-option { background-color: var(--bg-card-solid) !important; color: var(--text-primary) !important; }
-.Select-option.is-focused { background-color: rgba(59, 154, 232, 0.2) !important; }
-.Select-option.is-selected { background-color: rgba(59, 154, 232, 0.3) !important; }
-[class*="-option"] { background-color: var(--bg-card-solid) !important; color: var(--text-primary) !important; }
-[class*="-option"]:hover { background-color: rgba(59, 154, 232, 0.2) !important; }
-[data-theme="light"] .VirtualizedSelectFocusedOption {
-    background-color: rgba(0, 122, 255, 0.12) !important;
-}
-[data-theme="light"] .Select-option.is-focused { background-color: rgba(0, 122, 255, 0.12) !important; }
-[data-theme="light"] .Select-option.is-selected { background-color: rgba(0, 122, 255, 0.18) !important; }
-[data-theme="light"] [class*="-option"]:hover { background-color: rgba(0, 122, 255, 0.12) !important; }
-
-/* ARROW/CHEVRON */
-.Select-arrow { border-color: var(--text-muted) transparent transparent !important; }
-.Select-arrow-zone:hover > .Select-arrow {
-    border-color: var(--text-primary) transparent transparent !important;
-}
-[class*="-indicatorContainer"] { color: var(--text-muted) !important; }
-[class*="-indicatorSeparator"] { background-color: var(--border-solid) !important; }
-
-/* CLEAR BUTTON */
-.Select-clear-zone { color: var(--text-muted) !important; }
-.Select-clear-zone:hover { color: var(--text-primary) !important; }
-[class*="-clearIndicator"] { color: var(--text-muted) !important; }
-
-/* MULTI-SELECT TAGS */
-.Select--multi .Select-value {
-    background-color: rgba(59, 154, 232, 0.25) !important;
-    border-color: rgba(59, 154, 232, 0.4) !important;
-    color: var(--text-primary) !important;
-}
-.Select--multi .Select-value-icon:hover {
-    background-color: rgba(59, 154, 232, 0.35) !important;
-    color: var(--text-primary) !important;
-}
-[class*="-multiValue"] { background-color: rgba(59, 154, 232, 0.25) !important; }
-[class*="-multiValueLabel"] { color: var(--text-primary) !important; }
-
-/* NO RESULTS */
-.Select-noresults { background-color: var(--bg-card-solid) !important; color: var(--text-muted) !important; }
-
-/* DISABLED STATE */
-.Select.is-disabled > .Select-control {
-    background-color: var(--bg-input) !important;
-    border-color: var(--border) !important;
-    opacity: 0.6 !important;
-}
-
-/* Dash 4.x dropdown overrides */
-.dash-dropdown .Select-control,
-.dash-dropdown .Select-menu-outer,
-.dash-dropdown .Select-option,
-.dash-dropdown .Select-noresults {
-    background-color: var(--bg-card-solid) !important;
-    color: var(--text-primary) !important;
-}
-.dash-dropdown .Select-value-label,
-.dash-dropdown .Select-value,
-.dash-dropdown .Select-placeholder,
-.dash-dropdown input {
-    color: var(--text-primary) !important;
-}
-.dash-dropdown .Select-control {
-    background-color: var(--bg-card-solid) !important;
-    border-color: var(--border-solid) !important;
-}
-.dash-dropdown .Select-menu-outer {
-    background-color: var(--bg-card-solid) !important;
-    border-color: var(--border-solid) !important;
-    z-index: 9999 !important;
-}
-.dash-dropdown .Select-option.is-focused {
-    background-color: rgba(59,154,232,0.25) !important;
-}
-[data-theme="light"] .dash-dropdown .Select-option.is-focused {
-    background-color: rgba(0,122,255,0.12) !important;
+/* Option hover/highlight state */
+.dash-dropdown-option:hover,
+.dash-dropdown-option[data-highlighted] {
+    background: var(--Dash-Fill-Interactive-Weak) !important;
 }
 
 /* Generic fallback: visible input text */
-input, select, textarea,
-.css-1dimb5e-singleValue,
-.css-qbdosj-Input input,
-[class*="singleValue"],
-[class*="ValueContainer"] {
+input, select, textarea {
     color: var(--text-primary) !important;
-}
-[class*="dropdownIndicator"] svg,
-[class*="clearIndicator"] svg {
-    fill: var(--text-secondary) !important;
 }
 
 /* ════════ SLIDER FIX (opacity:1 critical) ════════ */
@@ -976,13 +861,6 @@ div[data-dash-is-loading] input[type="number"] {
 .dash-dropdown {
     position: relative;
     z-index: 10;
-}
-.dash-dropdown .Select.is-open {
-    z-index: 9999 !important;
-}
-.Select-menu-outer {
-    z-index: 9999 !important;
-    position: absolute !important;
 }
 
 /* ════════ PLOTLY MODEBAR HIDE ════════ */
