@@ -611,19 +611,17 @@ tab5 = dbc.Container([
         dbc.Row([
             dbc.Col([
                 dbc.Label("Physical Activity (FAF)", className="form-label"),
-                html.Div(dcc.Slider(id='inp-faf', min=0, max=3, step=1, value=1,
+                dcc.Slider(id='inp-faf', min=0, max=3, step=1, value=1,
                            marks={0: 'None', 1: '1-2 days', 2: '2-4 days', 3: '4-5 days'},
-                           tooltip={"placement": "top", "always_visible": False}),
-                         style={"paddingBottom": "28px"})
+                           included=True),
             ], md=6),
             dbc.Col([
                 dbc.Label("Screen Time (TUE)", className="form-label"),
-                html.Div(dcc.Slider(id='inp-tue', min=0, max=2, step=1, value=1,
+                dcc.Slider(id='inp-tue', min=0, max=2, step=1, value=1,
                            marks={0: '0-2 hrs', 1: '3-5 hrs', 2: '5+ hrs'},
-                           tooltip={"placement": "top", "always_visible": False}),
-                         style={"paddingBottom": "28px"})
+                           included=True),
             ], md=6),
-        ], className="mb-3"),
+        ], className="mb-4"),
         dbc.Row([
             dbc.Col([
                 dbc.Label("Transportation", className="form-label"),

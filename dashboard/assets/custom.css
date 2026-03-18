@@ -490,9 +490,9 @@ h1, h2, h3, h4, h5, h6 {
     border: 0.5px solid rgba(0, 0, 0, 0.06) !important;
 }
 
-/* Slider container spacing */
+/* Slider container spacing — extra right padding prevents label collision */
 .dash-slider {
-    padding: 8px 8px 0 8px !important;
+    padding: 8px 24px 16px 8px !important;
 }
 .rc-slider { margin-bottom: 0 !important; }
 
@@ -617,21 +617,34 @@ input, select, textarea {
 /* Disabled */
 .rc-slider-disabled { background-color: transparent !important; opacity: 0.5 !important; }
 
-/* DCC Slider value input box — HIDDEN because tooltip shows value on hover.
-   The input box overlaps with the last mark label on narrow columns. */
+/* DCC Slider value input box — HIDDEN because marks already show values.
+   The input box overlaps with mark labels on narrow columns. */
 .dash-slider input[type="number"],
 .dash-slider .rc-slider-handle + div,
-div[class*="slider"] input,
+div[class*="slider"] input[type="number"],
 .rc-slider + input,
 input.rc-slider-input,
-.dash-slider input {
+.dash-slider input,
+.rc-slider-container input,
+input[type="number"][style*="width"] {
     display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    position: absolute !important;
+    left: -9999px !important;
 }
 
 /* Target the Dash slider's input container — also hidden */
 .dash-slider > div:last-child input,
 div[data-dash-is-loading] input[type="number"] {
     display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+    position: absolute !important;
+    left: -9999px !important;
 }
 
 [data-theme="light"] .rc-slider-handle {
