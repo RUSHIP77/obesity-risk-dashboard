@@ -125,11 +125,11 @@ h1, h2, h3, h4, h5, h6 {
     margin: 0 auto 16px;
     font-size: 26px;
 }
-.kpi-icon.blue   { background: rgba(59,154,232,0.15); color: #3B9AE8; }
-.kpi-icon.teal   { background: rgba(45,212,191,0.15); color: #2DD4BF; }
-.kpi-icon.amber  { background: rgba(251,191,36,0.15); color: #FBBF24; }
-.kpi-icon.red    { background: rgba(248,113,113,0.15); color: #F87171; }
-.kpi-icon.purple { background: rgba(167,139,250,0.15); color: #A78BFA; }
+.kpi-icon.blue   { background: rgba(59,154,232,0.25); color: #3B9AE8; }
+.kpi-icon.teal   { background: rgba(45,212,191,0.25); color: #2DD4BF; }
+.kpi-icon.amber  { background: rgba(251,191,36,0.25); color: #FBBF24; }
+.kpi-icon.red    { background: rgba(248,113,113,0.25); color: #F87171; }
+.kpi-icon.purple { background: rgba(167,139,250,0.25); color: #A78BFA; }
 
 .kpi-value {
     font-family: var(--font-heading) !important;
@@ -176,7 +176,7 @@ h1, h2, h3, h4, h5, h6 {
     padding: 0 8px;
 }
 .nav-tabs .nav-link {
-    color: var(--text-muted) !important;
+    color: #94A3B8 !important;
     background: transparent !important;
     border: none !important;
     border-bottom: 2px solid transparent !important;
@@ -237,7 +237,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .section-subtitle {
     font-size: 14px;
-    color: var(--text-muted);
+    color: #94A3B8 !important;
     margin-bottom: 24px;
     line-height: 1.6;
 }
@@ -314,9 +314,16 @@ h1, h2, h3, h4, h5, h6 {
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(255,255,255,0.05) !important;
     border-radius: var(--radius) !important;
-    padding: 24px;
-    margin-bottom: 16px;
+    padding: 28px 28px 12px 28px;
+    margin-bottom: 20px;
+    overflow: visible;
 }
+
+/* Slider container spacing */
+.dash-slider {
+    padding: 8px 8px 0 8px !important;
+}
+.rc-slider { margin-bottom: 0 !important; }
 
 .form-section-title {
     font-family: var(--font-heading) !important;
@@ -333,10 +340,10 @@ h1, h2, h3, h4, h5, h6 {
 .form-label {
     font-size: 12px !important;
     font-weight: 600 !important;
-    color: var(--text-secondary) !important;
+    color: #CBD5E1 !important;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-bottom: 6px !important;
+    margin-bottom: 8px !important;
 }
 
 /* DBC Form Inputs Dark Override */
@@ -550,6 +557,17 @@ div[class*="slider"] input {
     border: 1px solid rgba(255,255,255,0.06) !important;
     border-radius: var(--radius) !important;
     box-shadow: var(--shadow-card) !important;
+    overflow: hidden;
+}
+
+/* Fix table container rounded corners */
+.dash-table-container {
+    border-radius: var(--radius) !important;
+    overflow: hidden !important;
+}
+.dash-spreadsheet-container {
+    border-radius: var(--radius) !important;
+    overflow: hidden !important;
 }
 .card-header {
     background: rgba(59,154,232,0.08) !important;

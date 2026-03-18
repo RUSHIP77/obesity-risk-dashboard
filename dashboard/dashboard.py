@@ -96,6 +96,16 @@ OBESITY_COLORS = {
     'Obesity_Type_III': '#DC2626'
 }
 
+# Clean display names (no underscores)
+OBESITY_LABELS = {c: c.replace('_', ' ') for c in OBESITY_ORDER}
+df['Obesity_Label'] = df['NObeyesdad'].map(OBESITY_LABELS)
+LABEL_ORDER = [OBESITY_LABELS[c] for c in OBESITY_ORDER]
+LABEL_COLORS = {OBESITY_LABELS[k]: v for k, v in OBESITY_COLORS.items()}
+
+# Clean feature names for display
+def clean_feature_name(name):
+    return name.replace('_', ' ').replace('MTRANS ', 'Transport: ').replace('family history with overweight', 'Family History')
+
 RISK_CSS = {
     'Insufficient_Weight': 'risk-low', 'Normal_Weight': 'risk-low',
     'Overweight_Level_I': 'risk-moderate', 'Overweight_Level_II': 'risk-moderate',
@@ -163,9 +173,9 @@ fig_donut.update_layout(title="Obesity Level Distribution", height=420,
                          legend=dict(font=dict(size=11)))
 
 # BMI Histogram
-fig_bmi = px.histogram(df, x='BMI', color='NObeyesdad',
-                        category_orders={'NObeyesdad': OBESITY_ORDER},
-                        color_discrete_map=OBESITY_COLORS,
+fig_bmi = px.histogram(df, x='BMI', color='Obesity_Label',
+                        category_orders={'Obesity_Label': LABEL_ORDER},
+                        color_discrete_map=LABEL_COLORS,
                         title="BMI Distribution by Obesity Level", nbins=50)
 fig_bmi.update_layout(height=420, legend_title_text="",
                        legend=dict(font=dict(size=12, color="#CBD5E1")),
@@ -194,7 +204,8 @@ numeric_features = ['Age', 'Height', 'Weight', 'FCVC', 'NCP', 'CH2O', 'FAF', 'TU
 
 # Feature importance
 feat_imp_df = pd.DataFrame({
-    'Feature': feature_names_cls, 'Importance': dt_model.feature_importances_
+    'Feature': [clean_feature_name(f) for f in feature_names_cls],
+    'Importance': dt_model.feature_importances_
 }).sort_values('Importance', ascending=True).tail(12)
 
 fig_feat_imp = go.Figure(go.Bar(
@@ -490,18 +501,24 @@ tab5 = dbc.Container([
         dbc.Row([
             dbc.Col([
                 dbc.Label("Vegetable Consumption (FCVC)", className="form-label"),
-                dcc.Slider(id='inp-fcvc', min=1, max=3, step=0.5, value=2,
-                           marks={1: 'Never', 2: 'Sometimes', 3: 'Always'})
+                html.Div(dcc.Slider(id='inp-fcvc', min=1, max=3, step=0.5, value=2,
+                           marks={1: 'Never', 2: 'Sometimes', 3: 'Always'},
+                           tooltip={"placement": "top", "always_visible": False}),
+                         style={"paddingBottom": "20px"})
             ], md=4),
             dbc.Col([
                 dbc.Label("Meals per Day (NCP)", className="form-label"),
-                dcc.Slider(id='inp-ncp', min=1, max=4, step=1, value=3,
-                           marks={1: '1', 2: '2', 3: '3', 4: '4+'})
+                html.Div(dcc.Slider(id='inp-ncp', min=1, max=4, step=1, value=3,
+                           marks={1: '1', 2: '2', 3: '3', 4: '4+'},
+                           tooltip={"placement": "top", "always_visible": False}),
+                         style={"paddingBottom": "20px"})
             ], md=4),
             dbc.Col([
                 dbc.Label("Water Intake (CH2O)", className="form-label"),
-                dcc.Slider(id='inp-ch2o', min=1, max=3, step=0.5, value=2,
-                           marks={1: '<1L', 2: '1-2L', 3: '>2L'})
+                html.Div(dcc.Slider(id='inp-ch2o', min=1, max=3, step=0.5, value=2,
+                           marks={1: '<1L', 2: '1-2L', 3: '>2L'},
+                           tooltip={"placement": "top", "always_visible": False}),
+                         style={"paddingBottom": "20px"})
             ], md=4),
         ]),
     ], className="form-section"),
@@ -512,13 +529,17 @@ tab5 = dbc.Container([
         dbc.Row([
             dbc.Col([
                 dbc.Label("Physical Activity (FAF)", className="form-label"),
-                dcc.Slider(id='inp-faf', min=0, max=3, step=1, value=1,
-                           marks={0: 'None', 1: '1-2 days', 2: '2-4 days', 3: '4-5 days'})
+                html.Div(dcc.Slider(id='inp-faf', min=0, max=3, step=1, value=1,
+                           marks={0: 'None', 1: '1-2 days', 2: '2-4 days', 3: '4-5 days'},
+                           tooltip={"placement": "top", "always_visible": False}),
+                         style={"paddingBottom": "20px"})
             ], md=4),
             dbc.Col([
                 dbc.Label("Screen Time (TUE)", className="form-label"),
-                dcc.Slider(id='inp-tue', min=0, max=2, step=1, value=1,
-                           marks={0: '0-2 hrs', 1: '3-5 hrs', 2: '5+ hrs'})
+                html.Div(dcc.Slider(id='inp-tue', min=0, max=2, step=1, value=1,
+                           marks={0: '0-2 hrs', 1: '3-5 hrs', 2: '5+ hrs'},
+                           tooltip={"placement": "top", "always_visible": False}),
+                         style={"paddingBottom": "20px"})
             ], md=4),
             dbc.Col([
                 dbc.Label("Transportation", className="form-label"),
@@ -594,20 +615,21 @@ app.layout = html.Div([
 # ============================================================
 @app.callback(Output('feature-dist-graph', 'figure'), Input('feature-select', 'value'))
 def update_feature_dist(feature):
-    fig = px.box(df, x='NObeyesdad', y=feature,
-                 category_orders={'NObeyesdad': OBESITY_ORDER},
-                 color='NObeyesdad', color_discrete_map=OBESITY_COLORS,
+    fig = px.box(df, x='Obesity_Label', y=feature,
+                 category_orders={'Obesity_Label': LABEL_ORDER},
+                 color='Obesity_Label', color_discrete_map=LABEL_COLORS,
                  title=f'{feature} Distribution by Obesity Level')
     fig.update_layout(showlegend=False, xaxis_tickangle=-45, height=380,
-                       xaxis_title="", yaxis_title=feature)
+                       xaxis_title="", yaxis_title=feature,
+                       xaxis=dict(tickfont=dict(size=11, color="#CBD5E1")))
     return fig
 
 @app.callback(Output('scatter-graph', 'figure'),
               [Input('scatter-x', 'value'), Input('scatter-y', 'value')])
 def update_scatter(x_feat, y_feat):
-    fig = px.scatter(df, x=x_feat, y=y_feat, color='NObeyesdad',
-                     category_orders={'NObeyesdad': OBESITY_ORDER},
-                     color_discrete_map=OBESITY_COLORS,
+    fig = px.scatter(df, x=x_feat, y=y_feat, color='Obesity_Label',
+                     category_orders={'Obesity_Label': LABEL_ORDER},
+                     color_discrete_map=LABEL_COLORS,
                      title=f'{x_feat} vs {y_feat}', opacity=0.6)
     fig.update_traces(marker=dict(size=6, line=dict(width=1, color='#141821')))
     fig.update_layout(height=380, legend=dict(font=dict(size=12, color="#CBD5E1")))
