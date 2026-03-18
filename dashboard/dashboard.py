@@ -52,13 +52,12 @@ pio.templates["health_dark"] = go.layout.Template(layout=go.Layout(
                 "rgba(148,163,184,0.15)", "#94A3B8", "#94A3B8"),
     colorway=COLORWAY,
     colorscale=dict(sequential=[[0, "#0C1929"], [0.5, "#0A84FF"], [1, "#30D158"]]),
-    legend=dict(bgcolor="rgba(30,34,53,0.8)", bordercolor="rgba(148,163,184,0.15)",
-                borderwidth=1, font=dict(family=FONT, size=12, color="#E2E8F0"),
-                orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
+    legend=dict(bgcolor="rgba(0,0,0,0)", borderwidth=0,
+                font=dict(family=FONT, size=12, color="#CBD5E1")),
     hoverlabel=dict(bgcolor="rgba(30,34,53,0.95)", bordercolor="rgba(148,163,184,0.2)",
                     font=dict(family=FONT, size=13, color="#E2E8F0")),
-    hovermode="x unified",
-    margin=dict(l=48, r=24, t=64, b=48),
+    hovermode="closest",
+    margin=dict(l=56, r=24, t=64, b=56),
 ), data=dict(
     bar=[go.Bar(marker=dict(cornerradius=4, line=dict(width=0)), opacity=0.9)],
     scatter=[go.Scatter(line=dict(width=2.5), marker=dict(size=7))],
@@ -73,13 +72,12 @@ pio.templates["health_light"] = go.layout.Template(layout=go.Layout(
     yaxis=_axis("#E5E5EA", "#D1D1D6", "#C7C7CC", "#6E6E73", "#6E6E73"),
     colorway=COLORWAY,
     colorscale=dict(sequential=[[0, "#D1ECFF"], [0.5, "#0A84FF"], [1, "#30D158"]]),
-    legend=dict(bgcolor="rgba(255,255,255,0.8)", bordercolor="#E5E5EA",
-                borderwidth=1, font=dict(family=FONT, size=12, color="#1D1D1F"),
-                orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
+    legend=dict(bgcolor="rgba(0,0,0,0)", borderwidth=0,
+                font=dict(family=FONT, size=12, color="#3C3C43")),
     hoverlabel=dict(bgcolor="rgba(255,255,255,0.95)", bordercolor="#D1D1D6",
                     font=dict(family=FONT, size=13, color="#1D1D1F")),
-    hovermode="x unified",
-    margin=dict(l=48, r=24, t=64, b=48),
+    hovermode="closest",
+    margin=dict(l=56, r=24, t=64, b=56),
 ), data=dict(
     bar=[go.Bar(marker=dict(cornerradius=4, line=dict(width=0)), opacity=0.9)],
     scatter=[go.Scatter(line=dict(width=2.5), marker=dict(size=7))],
@@ -164,11 +162,7 @@ app.index_string = '''
     {%css%}
     <script>
         (function() {
-            var theme = localStorage.getItem('dashTheme');
-            if (!theme) {
-                theme = window.matchMedia('(prefers-color-scheme: dark)').matches
-                    ? 'dark' : 'light';
-            }
+            var theme = localStorage.getItem('dashTheme') || 'dark';
             document.documentElement.setAttribute('data-bs-theme', theme);
             document.documentElement.setAttribute('data-theme', theme);
         })();
@@ -229,7 +223,8 @@ fig_donut.add_annotation(text=f"<b>Total</b><br>{len(df):,}",
                           font=dict(size=16, color="#F1F5F9", family="Manrope"),
                           showarrow=False)
 fig_donut.update_layout(title="Obesity Level Distribution", height=420,
-                         legend=dict(font=dict(size=12)))
+                         legend=dict(font=dict(size=11), orientation="v",
+                                     yanchor="middle", y=0.5, xanchor="right", x=1.15))
 
 # BMI Histogram
 fig_bmi = px.histogram(df, x='BMI', color='Obesity_Label',
@@ -237,8 +232,11 @@ fig_bmi = px.histogram(df, x='BMI', color='Obesity_Label',
                         color_discrete_map=LABEL_COLORS,
                         title="BMI Distribution by Obesity Level", nbins=50)
 fig_bmi.update_layout(height=420, legend_title_text="",
-                       legend=dict(font=dict(size=12, color="#CBD5E1")),
-                       xaxis_title="BMI (kg/m²)", yaxis_title="Count")
+                       legend=dict(font=dict(size=10, color="#CBD5E1"),
+                                   orientation="h", yanchor="top", y=-0.15,
+                                   xanchor="center", x=0.5),
+                       xaxis_title="BMI (kg/m²)", yaxis_title="Count",
+                       margin=dict(l=56, r=16, t=56, b=90))
 
 tab1 = dbc.Container([
     html.Div(style={"height": "16px"}),
@@ -360,27 +358,31 @@ X_test_cls = joblib.load(os.path.join(PROJECT, 'outputs/data/classification_spli
 y_test_cls = joblib.load(os.path.join(PROJECT, 'outputs/data/classification_splits.pkl'))[3]
 X_test_cls_scaled = joblib.load(os.path.join(PROJECT, 'outputs/data/classification_splits_scaled.pkl'))[1]
 
-labels_short = [c.replace('_', ' ').replace('Level ', 'L').replace('Type ', 'T') for c in OBESITY_ORDER]
+cm_labels = ['Insuff.', 'Normal', 'Over. I', 'Over. II', 'Obese I', 'Obese II', 'Obese III']
 
 cm_dt = confusion_matrix(y_test_cls, dt_model.predict(X_test_cls))
 fig_cm_dt = go.Figure(go.Heatmap(
-    z=cm_dt, x=labels_short, y=labels_short,
+    z=cm_dt, x=cm_labels, y=cm_labels,
     colorscale=[[0, "#141821"], [0.5, "#1A3A5C"], [1, "#3B9AE8"]],
     text=cm_dt, texttemplate='%{text}', textfont=dict(size=13, color="#F1F5F9"),
     xgap=3, ygap=3, showscale=False,
 ))
-fig_cm_dt.update_layout(title="Decision Tree — Confusion Matrix", height=420,
-                         xaxis_title="Predicted", yaxis_title="Actual")
+fig_cm_dt.update_layout(title="Decision Tree — Confusion Matrix", height=450,
+                         xaxis_title="Predicted", yaxis_title="Actual",
+                         margin=dict(l=80, r=16, t=56, b=80),
+                         xaxis=dict(tickangle=-35))
 
 cm_knn = confusion_matrix(y_test_cls, knn_model.predict(X_test_cls_scaled))
 fig_cm_knn = go.Figure(go.Heatmap(
-    z=cm_knn, x=labels_short, y=labels_short,
+    z=cm_knn, x=cm_labels, y=cm_labels,
     colorscale=[[0, "#141821"], [0.5, "#1A3A5C"], [1, "#2DD4BF"]],
     text=cm_knn, texttemplate='%{text}', textfont=dict(size=13, color="#F1F5F9"),
     xgap=3, ygap=3, showscale=False,
 ))
-fig_cm_knn.update_layout(title="KNN — Confusion Matrix", height=420,
-                          xaxis_title="Predicted", yaxis_title="Actual")
+fig_cm_knn.update_layout(title="KNN — Confusion Matrix", height=450,
+                          xaxis_title="Predicted", yaxis_title="Actual",
+                          margin=dict(l=80, r=16, t=56, b=80),
+                          xaxis=dict(tickangle=-35))
 
 tab3 = dbc.Container([
     html.Div(style={"height": "16px"}),
@@ -440,7 +442,9 @@ fig_pca = px.scatter(pca_df, x='PC1', y='PC2', color='Cluster',
                       labels={'PC1': f'PC1 ({pca_model.explained_variance_ratio_[0]*100:.1f}%)',
                               'PC2': f'PC2 ({pca_model.explained_variance_ratio_[1]*100:.1f}%)'})
 fig_pca.update_traces(marker=dict(size=7, line=dict(width=1, color='#141821')))
-fig_pca.update_layout(height=460, legend=dict(font=dict(size=12, color="#CBD5E1")))
+fig_pca.update_layout(height=460, legend=dict(font=dict(size=10, color="#CBD5E1"),
+                      orientation="h", yanchor="top", y=-0.12, xanchor="center", x=0.5),
+                      margin=dict(l=56, r=16, t=56, b=80))
 
 # Radar chart
 radar_features = ['FAF', 'TUE', 'FCVC', 'FAVC', 'CH2O', 'NCP', 'CAEC', 'CALC']
@@ -470,7 +474,9 @@ fig_radar.update_layout(
         angularaxis=dict(gridcolor='#2A2F45', linecolor='#2A2F45',
                          tickfont=dict(size=12, color="#94A3B8")),
     ),
-    legend=dict(font=dict(size=12, color="#CBD5E1")),
+    legend=dict(font=dict(size=10, color="#CBD5E1"),
+               orientation="h", yanchor="top", y=-0.15, xanchor="center", x=0.5),
+    margin=dict(l=56, r=56, t=56, b=80),
 )
 
 tab4 = dbc.Container([
@@ -641,7 +647,7 @@ tab5 = dbc.Container([
 # ============================================================
 color_mode_switch = html.Span([
     dbc.Label(className="fa fa-moon", html_for="color-mode-switch"),
-    dbc.Switch(id="color-mode-switch", value=True,
+    dbc.Switch(id="color-mode-switch", value=False,
                className="d-inline-block ms-1", persistence=True),
     dbc.Label(className="fa fa-sun", html_for="color-mode-switch"),
 ], className="theme-toggle-wrap")
@@ -696,9 +702,10 @@ def update_feature_dist(feature):
                  category_orders={'Obesity_Label': LABEL_ORDER},
                  color='Obesity_Label', color_discrete_map=LABEL_COLORS,
                  title=f'{feature} Distribution by Obesity Level')
-    fig.update_layout(showlegend=False, xaxis_tickangle=-45, height=380,
+    fig.update_layout(showlegend=False, xaxis_tickangle=-35, height=420,
                        xaxis_title="", yaxis_title=feature,
-                       xaxis=dict(tickfont=dict(size=11, color="#CBD5E1")))
+                       margin=dict(l=56, r=16, t=56, b=120),
+                       xaxis=dict(tickfont=dict(size=10, color="#CBD5E1")))
     return fig
 
 @app.callback(Output('scatter-graph', 'figure'),
@@ -707,9 +714,11 @@ def update_scatter(x_feat, y_feat):
     fig = px.scatter(df, x=x_feat, y=y_feat, color='Obesity_Label',
                      category_orders={'Obesity_Label': LABEL_ORDER},
                      color_discrete_map=LABEL_COLORS,
-                     title=f'{x_feat} vs {y_feat}', opacity=0.6)
+                     title=f'{x_feat} vs {y_feat}', opacity=0.6,
+                     labels={'Obesity_Label': ''})
     fig.update_traces(marker=dict(size=6, line=dict(width=1, color='#141821')))
-    fig.update_layout(height=380, legend=dict(font=dict(size=12, color="#CBD5E1")))
+    fig.update_layout(height=420, legend=dict(font=dict(size=11, color="#CBD5E1"),
+                      title_text=""))
     return fig
 
 @app.callback(
@@ -927,7 +936,7 @@ def predict(n_clicks, gender, age, height, weight, fh, favc,
 clientside_callback(
     """
     (switchOn) => {
-        const theme = switchOn ? 'light' : 'dark';
+        const theme = switchOn ? 'dark' : 'light';
         document.documentElement.setAttribute('data-bs-theme', theme);
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('dashTheme', theme);
@@ -950,7 +959,7 @@ _GRAPH_IDS = [
     prevent_initial_call=True,
 )
 def switch_chart_templates(switch_on):
-    template = pio.templates["health_light" if switch_on else "health_dark"]
+    template = pio.templates["health_dark" if switch_on else "health_light"]
     results = []
     for _ in _GRAPH_IDS:
         patched = Patch()
