@@ -13,8 +13,8 @@ UCI Machine Learning Repository ID: 544
 
 ## Models
 1. **Multiple Linear Regression** — predicts BMI from lifestyle factors (R² = 0.466)
-2. **Decision Tree Classifier** — classifies into 7 obesity levels (96.7% accuracy)
-3. **KNN Classifier** — nearest-neighbor classification comparison (86.1% accuracy)
+2. **Decision Tree Classifier** — classifies into 7 obesity levels (73.5% accuracy)
+3. **KNN Classifier** — nearest-neighbor classification comparison (80.1% accuracy)
 4. **K-Means Clustering** — identifies 4 behavioral risk groups
 
 ## Dashboard
