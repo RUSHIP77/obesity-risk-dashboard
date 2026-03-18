@@ -27,19 +27,10 @@ print(f"Loaded: {df.shape}")
 print("\n[2.2] Feature Engineering...")
 
 df['BMI'] = df['Weight'] / (df['Height'] ** 2)
-df['Activity_Screen_Ratio'] = df['FAF'] / (df['TUE'] + 0.1)
-
-# Dietary Risk Score
-caec_map_num = {'no': 0, 'Sometimes': 1, 'Frequently': 2, 'Always': 3}
-df['Dietary_Risk_Score'] = (
-    (df['FAVC'].map({'no': 0, 'yes': 1})) +
-    (3 - df['FCVC']) +
-    df['CAEC'].map(caec_map_num)
-)
+# Note: Activity_Screen_Ratio and Dietary_Risk_Score were removed —
+# they are not used in any feature matrix (classification, regression, or clustering).
 
 print(f"BMI range: {df['BMI'].min():.2f} - {df['BMI'].max():.2f}")
-print(f"Activity_Screen_Ratio range: {df['Activity_Screen_Ratio'].min():.2f} - {df['Activity_Screen_Ratio'].max():.2f}")
-print(f"Dietary_Risk_Score range: {df['Dietary_Risk_Score'].min():.2f} - {df['Dietary_Risk_Score'].max():.2f}")
 
 # ============================================================
 # Step 2.3: Encode Categorical Variables
@@ -88,9 +79,13 @@ print("\n[2.4] Creating feature matrices...")
 y_class = df_processed['NObeyesdad_encoded']
 y_bmi = df_processed['BMI']
 
-# Classification features: everything except target, original target string
-drop_cls = ['NObeyesdad', 'NObeyesdad_encoded']
-X_full = df_processed.drop(columns=drop_cls)
+# Classification features: LIFESTYLE ONLY (no Height, Weight, BMI — these cause data leakage
+# because BMI directly determines the obesity class label)
+cls_cols = ['Gender', 'Age', 'family_history_with_overweight', 'FAVC', 'FCVC', 'NCP',
+            'CAEC', 'SMOKE', 'CH2O', 'SCC', 'FAF', 'TUE', 'CALC']
+cls_mtrans_cols = [c for c in df_processed.columns if c.startswith('MTRANS_')]
+cls_cols.extend(cls_mtrans_cols)
+X_full = df_processed[cls_cols]
 
 # Regression features: lifestyle only (no Weight, Height, BMI, Activity_Screen_Ratio, Dietary_Risk_Score)
 # Actually per the prompt: use lifestyle features to predict BMI

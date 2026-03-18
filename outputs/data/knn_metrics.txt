@@ -1,22 +1,22 @@
 KNN Results
 ========================================
 Best k: 1
-Accuracy: 0.8605
-Macro F1: 0.8509
-Weighted F1: 0.8547
+Accuracy: 0.8014
+Macro F1: 0.7943
+Weighted F1: 0.7975
 
 Classification Report:
                      precision    recall  f1-score   support
 
-Insufficient_Weight       0.84      0.98      0.91        54
-      Normal_Weight       0.78      0.53      0.63        58
- Overweight_Level_I       0.76      0.71      0.73        58
-Overweight_Level_II       0.78      0.90      0.83        58
-     Obesity_Type_I       0.88      0.93      0.90        70
-    Obesity_Type_II       0.95      0.97      0.96        60
-   Obesity_Type_III       1.00      0.98      0.99        65
+Insufficient_Weight       0.76      0.94      0.84        54
+      Normal_Weight       0.69      0.50      0.58        58
+ Overweight_Level_I       0.66      0.71      0.68        58
+Overweight_Level_II       0.75      0.83      0.79        58
+     Obesity_Type_I       0.84      0.76      0.80        70
+    Obesity_Type_II       0.87      0.90      0.89        60
+   Obesity_Type_III       1.00      0.97      0.98        65
 
-           accuracy                           0.86       423
-          macro avg       0.85      0.86      0.85       423
-       weighted avg       0.86      0.86      0.85       423
+           accuracy                           0.80       423
+          macro avg       0.80      0.80      0.79       423
+       weighted avg       0.80      0.80      0.80       423
 

@@ -1,5 +1,5 @@
 Model,Task,Primary Metric,Macro F1,Key Insight
 Linear Regression,Regression (BMI),R² = 0.4662,N/A,Lifestyle factors predict BMI
-Decision Tree,Classification (7-class),Accuracy = 96.7%,0.9671,Top feature: BMI
-KNN (k=1),Classification (7-class),Accuracy = 86.1%,0.8509,Best k: 1
+Decision Tree,Classification (7-class),Accuracy = 73.5%,0.7318,Top feature: FCVC
+KNN (k=1),Classification (7-class),Accuracy = 80.1%,0.7943,Best k: 1
 K-Means (k=4),Clustering,4 risk groups,N/A,4 risk groups found

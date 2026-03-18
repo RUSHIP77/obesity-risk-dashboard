@@ -1,5 +1,3 @@
-import matplotlib
-matplotlib.use('Agg')
 import dash
 from dash import dcc, html, Input, Output, State, dash_table, clientside_callback, Patch
 import dash_bootstrap_components as dbc
@@ -10,6 +8,7 @@ import pandas as pd
 import numpy as np
 import joblib
 import os
+from sklearn.metrics import confusion_matrix
 
 # ============================================================
 # Paths
@@ -20,9 +19,6 @@ PROJECT = os.path.dirname(BASE)
 # ============================================================
 # Custom Plotly Templates (Dark + Light)
 # ============================================================
-CHART_COLORS = ["#3B9AE8", "#2DD4BF", "#FBBF24", "#A78BFA",
-                "#34D399", "#F472B6", "#FB923C", "#94A3B8"]
-
 FONT = ('Inter, -apple-system, BlinkMacSystemFont, "SF Pro Display", '
         '"Helvetica Neue", Arial, sans-serif')
 
@@ -106,7 +102,6 @@ cluster_names = joblib.load(os.path.join(PROJECT, 'outputs/data/cluster_names.pk
 
 df = pd.read_csv(os.path.join(PROJECT, 'data/ObesityDataSet_raw_and_data_sinthetic.csv'))
 df['BMI'] = df['Weight'] / (df['Height'] ** 2)
-df_processed = pd.read_csv(os.path.join(PROJECT, 'outputs/data/processed_data.csv'))
 cluster_profiles = pd.read_csv(os.path.join(PROJECT, 'outputs/data/cluster_profiles.csv'))
 cluster_labels = joblib.load(os.path.join(PROJECT, 'outputs/data/cluster_labels.pkl'))
 
@@ -150,6 +145,7 @@ app = dash.Dash(
     suppress_callback_exceptions=True
 )
 app.title = "Childhood Obesity Risk Screening Dashboard"
+server = app.server
 
 # FOUC prevention: set theme before first paint
 app.index_string = '''
@@ -189,17 +185,17 @@ fh_pct = (df['family_history_with_overweight'] == 'yes').mean() * 100
 kpi_row = dbc.Row([
     dbc.Col(html.Div([
         html.Div("📊", className="kpi-icon blue"),
-        html.Div("2,111", className="kpi-value"),
+        html.Div(f"{len(df):,}", className="kpi-value"),
         html.Div("Total Records", className="kpi-label"),
     ], className="kpi-card fade-in-d1"), xs=6, md=3),
     dbc.Col(html.Div([
         html.Div("🔬", className="kpi-icon teal"),
-        html.Div("17", className="kpi-value"),
+        html.Div(str(len(df.columns) - 1), className="kpi-value"),
         html.Div("Features", className="kpi-label"),
     ], className="kpi-card fade-in-d2"), xs=6, md=3),
     dbc.Col(html.Div([
         html.Div("📈", className="kpi-icon amber"),
-        html.Div("7", className="kpi-value"),
+        html.Div(str(df['NObeyesdad'].nunique()), className="kpi-value"),
         html.Div("Obesity Classes", className="kpi-label"),
     ], className="kpi-card fade-in-d3"), xs=6, md=3),
     dbc.Col(html.Div([
@@ -215,12 +211,12 @@ fig_donut = go.Figure(data=[go.Pie(
     labels=[c.replace('_', ' ') for c in counts.index],
     values=counts.values, hole=0.55,
     marker=dict(colors=[OBESITY_COLORS[c] for c in counts.index],
-                line=dict(color='#141821', width=2)),
-    textinfo='percent', textfont=dict(size=12, color='#F1F5F9'),
+                line=dict(color='rgba(0,0,0,0.15)', width=1)),
+    textinfo='percent', textfont=dict(size=12),
     hovertemplate='<b>%{label}</b><br>Count: %{value}<br>Share: %{percent}<extra></extra>',
 )])
 fig_donut.add_annotation(text=f"<b>Total</b><br>{len(df):,}",
-                          font=dict(size=16, color="#F1F5F9", family="Manrope"),
+                          font=dict(size=16, family="Manrope"),
                           showarrow=False)
 fig_donut.update_layout(title="Obesity Level Distribution", height=420,
                          legend=dict(font=dict(size=11), orientation="h",
@@ -232,7 +228,7 @@ fig_bmi = px.histogram(df, x='BMI', color='Obesity_Label',
                         color_discrete_map=LABEL_COLORS,
                         title="BMI Distribution by Obesity Level", nbins=50)
 fig_bmi.update_layout(height=420, legend_title_text="",
-                       legend=dict(font=dict(size=10, color="#CBD5E1"),
+                       legend=dict(font=dict(size=10),
                                    orientation="h", yanchor="top", y=-0.15,
                                    xanchor="center", x=0.5),
                        xaxis_title="BMI (kg/m²)", yaxis_title="Count",
@@ -246,10 +242,10 @@ tab1 = dbc.Container([
     kpi_row,
     dbc.Row([
         dbc.Col(html.Div([
-            dcc.Graph(figure=fig_donut, config=CHART_CONFIG)
+            dcc.Graph(id="donut-chart", figure=fig_donut, config=CHART_CONFIG)
         ], className="chart-container"), md=6),
         dbc.Col(html.Div([
-            dcc.Graph(figure=fig_bmi, config=CHART_CONFIG)
+            dcc.Graph(id="bmi-hist", figure=fig_bmi, config=CHART_CONFIG)
         ], className="chart-container"), md=6),
     ], className="g-3"),
 ], fluid=True)
@@ -283,10 +279,10 @@ fig_feat_imp.update_layout(title="Decision Tree — Feature Importance (Top 12)"
 corr_vals = df[numeric_features].corr().values
 fig_corr = go.Figure(go.Heatmap(
     z=corr_vals, x=numeric_features, y=numeric_features,
-    colorscale=[[0, "#F87171"], [0.5, "#1E2235"], [1, "#3B9AE8"]],
+    colorscale=[[0, "#FF6B6B"], [0.5, "#4A5568"], [1, "#4299E1"]],
     zmid=0,
     text=np.round(corr_vals, 2), texttemplate='%{text}',
-    textfont={"size": 10, "color": "#F1F5F9"},
+    textfont={"size": 10},
     xgap=2, ygap=2, showscale=True,
     colorbar=dict(tickfont=dict(color="#64748B")),
 ))
@@ -319,10 +315,10 @@ tab2 = dbc.Container([
     ], className="g-3 mb-3"),
     dbc.Row([
         dbc.Col(html.Div([
-            dcc.Graph(figure=fig_feat_imp, config=CHART_CONFIG)
+            dcc.Graph(id="feat-imp", figure=fig_feat_imp, config=CHART_CONFIG)
         ], className="chart-container"), md=6),
         dbc.Col(html.Div([
-            dcc.Graph(figure=fig_corr, config=CHART_CONFIG)
+            dcc.Graph(id="corr-heatmap", figure=fig_corr, config=CHART_CONFIG)
         ], className="chart-container"), md=6),
     ], className="g-3"),
 ], fluid=True)
@@ -336,6 +332,23 @@ with open(os.path.join(PROJECT, 'outputs/data/dt_metrics.txt'), 'r') as f:
     dt_metrics_text = f.read()
 with open(os.path.join(PROJECT, 'outputs/data/knn_metrics.txt'), 'r') as f:
     knn_metrics_text = f.read()
+
+# Parse metrics for dynamic accordion titles
+def _parse_accuracy(text):
+    for line in text.splitlines():
+        if 'Accuracy' in line and ':' in line:
+            return float(line.split(':')[-1].strip())
+    return 0.0
+
+def _parse_r2(text):
+    for line in text.splitlines():
+        if 'R²' in line and ':' in line:
+            return float(line.split(':')[-1].strip())
+    return 0.0
+
+dt_acc_val = _parse_accuracy(dt_metrics_text)
+knn_acc_val = _parse_accuracy(knn_metrics_text)
+lr_r2_val = _parse_r2(reg_metrics_text)
 
 model_comparison_df = pd.read_csv(os.path.join(PROJECT, 'outputs/data/model_comparison.csv'))
 
@@ -353,7 +366,6 @@ fig_coef = go.Figure(go.Bar(
 fig_coef.update_layout(title="Linear Regression Coefficients — Predicting BMI", height=420)
 
 # Confusion matrices
-from sklearn.metrics import confusion_matrix
 X_test_cls = joblib.load(os.path.join(PROJECT, 'outputs/data/classification_splits.pkl'))[1]
 y_test_cls = joblib.load(os.path.join(PROJECT, 'outputs/data/classification_splits.pkl'))[3]
 X_test_cls_scaled = joblib.load(os.path.join(PROJECT, 'outputs/data/classification_splits_scaled.pkl'))[1]
@@ -363,26 +375,28 @@ cm_labels = ['Insuff.', 'Normal', 'Over. I', 'Over. II', 'Obese I', 'Obese II', 
 cm_dt = confusion_matrix(y_test_cls, dt_model.predict(X_test_cls))
 fig_cm_dt = go.Figure(go.Heatmap(
     z=cm_dt, x=cm_labels, y=cm_labels,
-    colorscale=[[0, "#141821"], [0.5, "#1A3A5C"], [1, "#3B9AE8"]],
-    text=cm_dt, texttemplate='%{text}', textfont=dict(size=13, color="#F1F5F9"),
+    colorscale=[[0, "#2D3748"], [0.5, "#2B6CB0"], [1, "#63B3ED"]],
+    text=cm_dt, texttemplate='%{text}', textfont=dict(size=13, color="#FFFFFF"),
     xgap=3, ygap=3, showscale=False,
 ))
 fig_cm_dt.update_layout(title="Decision Tree — Confusion Matrix", height=450,
                          xaxis_title="Predicted", yaxis_title="Actual",
                          margin=dict(l=100, r=16, t=56, b=80),
-                         xaxis=dict(tickangle=-35))
+                         xaxis=dict(tickangle=-35),
+                         yaxis=dict(autorange='reversed'))
 
 cm_knn = confusion_matrix(y_test_cls, knn_model.predict(X_test_cls_scaled))
 fig_cm_knn = go.Figure(go.Heatmap(
     z=cm_knn, x=cm_labels, y=cm_labels,
-    colorscale=[[0, "#141821"], [0.5, "#1A3A5C"], [1, "#2DD4BF"]],
-    text=cm_knn, texttemplate='%{text}', textfont=dict(size=13, color="#F1F5F9"),
+    colorscale=[[0, "#2D3748"], [0.5, "#2C7A7B"], [1, "#4FD1C5"]],
+    text=cm_knn, texttemplate='%{text}', textfont=dict(size=13, color="#FFFFFF"),
     xgap=3, ygap=3, showscale=False,
 ))
 fig_cm_knn.update_layout(title="KNN — Confusion Matrix", height=450,
                           xaxis_title="Predicted", yaxis_title="Actual",
                           margin=dict(l=100, r=16, t=56, b=80),
-                          xaxis=dict(tickangle=-35))
+                          xaxis=dict(tickangle=-35),
+                          yaxis=dict(autorange='reversed'))
 
 tab3 = dbc.Container([
     html.Div(style={"height": "16px"}),
@@ -391,16 +405,10 @@ tab3 = dbc.Container([
         dash_table.DataTable(
             data=model_comparison_df.to_dict('records'),
             columns=[{"name": i, "id": i} for i in model_comparison_df.columns],
-            style_header={'backgroundColor': 'rgba(59,154,232,0.1)', 'color': '#3B9AE8',
-                          'fontWeight': '600', 'textTransform': 'uppercase', 'fontSize': '11px',
-                          'letterSpacing': '0.5px', 'border': '1px solid #2A2F45'},
+            style_header={'fontWeight': '600', 'textTransform': 'uppercase',
+                          'fontSize': '11px', 'letterSpacing': '0.5px'},
             style_cell={'textAlign': 'center', 'padding': '14px 16px',
-                        'backgroundColor': '#1E2235', 'color': '#F1F5F9',
-                        'border': '1px solid #2A2F45', 'fontFamily': 'Inter, sans-serif',
-                        'fontSize': '13px'},
-            style_data_conditional=[
-                {'if': {'row_index': 'odd'}, 'backgroundColor': '#1A1D2E'}
-            ]
+                        'fontFamily': 'Inter, sans-serif', 'fontSize': '13px'},
         )
     ], className="glass-card mb-4", style={"padding": "0", "overflow": "hidden"}),
     dbc.Accordion([
@@ -408,20 +416,20 @@ tab3 = dbc.Container([
             html.Pre(reg_metrics_text,
                      style={"fontSize": "12px", "color": "#94A3B8", "background": "transparent",
                             "border": "none", "fontFamily": "JetBrains Mono, monospace"}),
-            html.Div([dcc.Graph(figure=fig_coef, config=CHART_CONFIG)], className="chart-container")
-        ], title="📈  Linear Regression — R² = 0.466"),
+            html.Div([dcc.Graph(id="coef-chart", figure=fig_coef, config=CHART_CONFIG)], className="chart-container")
+        ], title=f"📈  Linear Regression — R² = {lr_r2_val:.3f}"),
         dbc.AccordionItem([
             html.Pre(dt_metrics_text,
                      style={"fontSize": "12px", "color": "#94A3B8", "background": "transparent",
                             "border": "none", "fontFamily": "JetBrains Mono, monospace"}),
-            html.Div([dcc.Graph(figure=fig_cm_dt, config=CHART_CONFIG)], className="chart-container")
-        ], title="🌳  Decision Tree — 96.7% Accuracy"),
+            html.Div([dcc.Graph(id="cm-dt", figure=fig_cm_dt, config=CHART_CONFIG)], className="chart-container")
+        ], title=f"🌳  Decision Tree — {dt_acc_val*100:.1f}% Accuracy"),
         dbc.AccordionItem([
             html.Pre(knn_metrics_text,
                      style={"fontSize": "12px", "color": "#94A3B8", "background": "transparent",
                             "border": "none", "fontFamily": "JetBrains Mono, monospace"}),
-            html.Div([dcc.Graph(figure=fig_cm_knn, config=CHART_CONFIG)], className="chart-container")
-        ], title="🔍  KNN Classifier — 86.1% Accuracy"),
+            html.Div([dcc.Graph(id="cm-knn", figure=fig_cm_knn, config=CHART_CONFIG)], className="chart-container")
+        ], title=f"🔍  KNN Classifier — {knn_acc_val*100:.1f}% Accuracy"),
     ], start_collapsed=True),
 ], fluid=True)
 
@@ -437,12 +445,12 @@ pca_df = pd.DataFrame({
 
 fig_pca = px.scatter(pca_df, x='PC1', y='PC2', color='Cluster',
                       title="K-Means Clusters (PCA Projection)",
-                      color_discrete_sequence=CHART_COLORS,
+                      color_discrete_sequence=COLORWAY,
                       opacity=0.65,
                       labels={'PC1': f'PC1 ({pca_model.explained_variance_ratio_[0]*100:.1f}%)',
                               'PC2': f'PC2 ({pca_model.explained_variance_ratio_[1]*100:.1f}%)'})
-fig_pca.update_traces(marker=dict(size=7, line=dict(width=1, color='#141821')))
-fig_pca.update_layout(height=460, legend=dict(font=dict(size=10, color="#CBD5E1"),
+fig_pca.update_traces(marker=dict(size=7, line=dict(width=0.5, color='rgba(0,0,0,0.2)')))
+fig_pca.update_layout(height=460, legend=dict(font=dict(size=10),
                       orientation="h", yanchor="top", y=-0.18, xanchor="center", x=0.5),
                       margin=dict(l=56, r=16, t=56, b=100))
 
@@ -461,7 +469,7 @@ for i in range(len(cluster_profiles)):
     fig_radar.add_trace(go.Scatterpolar(
         r=vals, theta=radar_features + [radar_features[0]],
         fill='toself', name=f"Cluster {i}: {cluster_names.get(i, i)}",
-        line=dict(color=CHART_COLORS[i % len(CHART_COLORS)], width=2),
+        line=dict(color=COLORWAY[i % len(COLORWAY)], width=2),
         fillcolor=RADAR_FILLS[i % len(RADAR_FILLS)],
         opacity=0.85,
     ))
@@ -469,41 +477,42 @@ fig_radar.update_layout(
     title="Cluster Risk Profiles", height=460,
     polar=dict(
         bgcolor='rgba(0,0,0,0)',
-        radialaxis=dict(range=[0, 1], gridcolor='#2A2F45', linecolor='#2A2F45',
-                        tickfont=dict(size=10, color="#64748B")),
-        angularaxis=dict(gridcolor='#2A2F45', linecolor='#2A2F45',
-                         tickfont=dict(size=12, color="#94A3B8")),
+        radialaxis=dict(range=[0, 1], gridcolor='rgba(128,128,128,0.2)',
+                        linecolor='rgba(128,128,128,0.2)',
+                        tickfont=dict(size=10)),
+        angularaxis=dict(gridcolor='rgba(128,128,128,0.2)',
+                         linecolor='rgba(128,128,128,0.2)',
+                         tickfont=dict(size=12)),
     ),
-    legend=dict(font=dict(size=10, color="#CBD5E1"),
+    legend=dict(font=dict(size=10),
                orientation="h", yanchor="top", y=-0.22, xanchor="center", x=0.5),
     margin=dict(l=56, r=56, t=56, b=100),
 )
+
+# Map cluster integer IDs to descriptive names for display
+cluster_display_df = cluster_profiles.copy()
+cluster_display_df['Cluster'] = cluster_display_df['Cluster'].map(
+    lambda c: f"{int(c)}: {cluster_names.get(int(c), c)}")
 
 tab4 = dbc.Container([
     html.Div(style={"height": "16px"}),
     dbc.Row([
         dbc.Col(html.Div([
-            dcc.Graph(figure=fig_pca, config=CHART_CONFIG)
+            dcc.Graph(id="pca-chart", figure=fig_pca, config=CHART_CONFIG)
         ], className="chart-container"), md=6),
         dbc.Col(html.Div([
-            dcc.Graph(figure=fig_radar, config=CHART_CONFIG)
+            dcc.Graph(id="radar-chart", figure=fig_radar, config=CHART_CONFIG)
         ], className="chart-container"), md=6),
     ], className="g-3 mb-3"),
     html.Div("Cluster Profile Summary", className="section-header"),
     html.Div([
         dash_table.DataTable(
-            data=cluster_profiles.round(3).to_dict('records'),
-            columns=[{"name": i, "id": i} for i in cluster_profiles.columns],
-            style_header={'backgroundColor': 'rgba(59,154,232,0.1)', 'color': '#3B9AE8',
-                          'fontWeight': '600', 'textTransform': 'uppercase', 'fontSize': '11px',
-                          'letterSpacing': '0.5px', 'border': '1px solid #2A2F45'},
+            data=cluster_display_df.round(3).to_dict('records'),
+            columns=[{"name": i, "id": i} for i in cluster_display_df.columns],
+            style_header={'fontWeight': '600', 'textTransform': 'uppercase',
+                          'fontSize': '11px', 'letterSpacing': '0.5px'},
             style_cell={'textAlign': 'center', 'padding': '12px 14px',
-                        'backgroundColor': '#1E2235', 'color': '#F1F5F9',
-                        'border': '1px solid #2A2F45', 'fontFamily': 'Inter, sans-serif',
-                        'fontSize': '12px'},
-            style_data_conditional=[
-                {'if': {'row_index': 'odd'}, 'backgroundColor': '#1A1D2E'}
-            ]
+                        'fontFamily': 'Inter, sans-serif', 'fontSize': '12px'},
         )
     ], className="glass-card", style={"padding": "0", "overflow": "hidden"}),
 ], fluid=True)
@@ -705,7 +714,7 @@ def update_feature_dist(feature):
     fig.update_layout(showlegend=False, xaxis_tickangle=-35, height=420,
                        xaxis_title="", yaxis_title=feature,
                        margin=dict(l=56, r=16, t=56, b=120),
-                       xaxis=dict(tickfont=dict(size=10, color="#CBD5E1")))
+                       xaxis=dict(tickfont=dict(size=10)))
     return fig
 
 @app.callback(Output('scatter-graph', 'figure'),
@@ -716,8 +725,8 @@ def update_scatter(x_feat, y_feat):
                      color_discrete_map=LABEL_COLORS,
                      title=f'{x_feat} vs {y_feat}', opacity=0.6,
                      labels={'Obesity_Label': ''})
-    fig.update_traces(marker=dict(size=6, line=dict(width=1, color='#141821')))
-    fig.update_layout(height=420, legend=dict(font=dict(size=11, color="#CBD5E1"),
+    fig.update_traces(marker=dict(size=6, line=dict(width=0.5, color='rgba(0,0,0,0.2)')))
+    fig.update_layout(height=420, legend=dict(font=dict(size=11),
                       title_text=""))
     return fig
 
@@ -742,6 +751,9 @@ def predict(n_clicks, gender, age, height, weight, fh, favc,
 
         age, height, weight = float(age), float(height), float(weight)
 
+        if height <= 0:
+            return dbc.Alert("Height must be greater than zero.", color="warning")
+
         # Encode
         gender_enc = 1 if gender == 'Male' else 0
         fh_enc = 1 if fh == 'yes' else 0
@@ -757,17 +769,13 @@ def predict(n_clicks, gender, age, height, weight, fh, favc,
         mtrans_walking = 1 if mtrans == 'Walking' else 0
 
         bmi = weight / (height ** 2)
-        activity_screen_ratio = faf / (tue + 0.1)
-        dietary_risk_score = favc_enc + (3 - fcvc) + caec_enc
 
-        # Classification
+        # Classification (17 lifestyle-only features, no BMI/Height/Weight)
         cls_dict = {
-            'Gender': gender_enc, 'Age': age, 'Height': height, 'Weight': weight,
+            'Gender': gender_enc, 'Age': age,
             'family_history_with_overweight': fh_enc, 'FAVC': favc_enc,
             'FCVC': fcvc, 'NCP': ncp, 'CAEC': caec_enc, 'SMOKE': smoke_enc,
             'CH2O': ch2o, 'SCC': scc_enc, 'FAF': faf, 'TUE': tue, 'CALC': calc_enc,
-            'BMI': bmi, 'Activity_Screen_Ratio': activity_screen_ratio,
-            'Dietary_Risk_Score': dietary_risk_score,
             'MTRANS_Bike': mtrans_bike, 'MTRANS_Motorbike': mtrans_motorbike,
             'MTRANS_Public_Transportation': mtrans_public, 'MTRANS_Walking': mtrans_walking
         }
@@ -805,12 +813,12 @@ def predict(n_clicks, gender, age, height, weight, fh, favc,
         fig_gauge = go.Figure(go.Indicator(
             mode="gauge+number",
             value=bmi,
-            number={"suffix": "", "font": {"size": 38, "color": "#F1F5F9", "family": "Manrope"},
+            number={"suffix": "", "font": {"size": 38, "family": "Manrope"},
                      "valueformat": ".1f"},
-            title={"text": "BMI Score", "font": {"size": 14, "color": "#94A3B8"}},
+            title={"text": "BMI Score", "font": {"size": 14}},
             gauge=dict(
-                axis=dict(range=[15, 50], tickcolor="#64748B", dtick=5,
-                          tickfont=dict(size=10, color="#64748B")),
+                axis=dict(range=[15, 50], tickcolor="rgba(128,128,128,0.5)", dtick=5,
+                          tickfont=dict(size=10)),
                 bar=dict(color="#3B9AE8", thickness=0.7),
                 bgcolor="rgba(0,0,0,0)", borderwidth=0,
                 steps=[
@@ -855,18 +863,16 @@ def predict(n_clicks, gender, age, height, weight, fh, favc,
         result = html.Div([
             # Header
             html.Div([
-                html.H4("Prediction Results", style={"margin": "0", "color": "#F1F5F9",
-                         "fontFamily": "Manrope, sans-serif", "fontWeight": "700"}),
+                html.H4("Prediction Results", className="result-title",
+                         style={"margin": "0", "fontFamily": "Manrope, sans-serif",
+                                "fontWeight": "700"}),
             ], className="result-header"),
 
             html.Div([
                 # Top row: Risk + Gauge + Cluster
                 dbc.Row([
                     dbc.Col([
-                        html.Div("Predicted Risk Level",
-                                 style={"fontSize": "12px", "color": "#64748B",
-                                        "textTransform": "uppercase", "letterSpacing": "1px",
-                                        "marginBottom": "12px", "fontWeight": "600"}),
+                        html.Div("Predicted Risk Level", className="result-label"),
                         html.Div(predicted_class.replace('_', ' '), className=f"risk-badge {risk_css}"),
                     ], md=4, className="text-center", style={"paddingTop": "20px"}),
 
@@ -876,44 +882,41 @@ def predict(n_clicks, gender, age, height, weight, fh, favc,
                     ], md=4),
 
                     dbc.Col([
-                        html.Div("Behavioral Cluster",
-                                 style={"fontSize": "12px", "color": "#64748B",
-                                        "textTransform": "uppercase", "letterSpacing": "1px",
-                                        "marginBottom": "12px", "fontWeight": "600"}),
-                        html.Div(cluster_name,
+                        html.Div("Behavioral Cluster", className="result-label"),
+                        html.Div(cluster_name, className="result-value-accent",
                                  style={"fontSize": "20px", "fontWeight": "700",
-                                        "color": "#2DD4BF", "fontFamily": "Manrope"}),
+                                        "fontFamily": "Manrope"}),
                         html.Div(f"Predicted BMI: {predicted_bmi:.1f} kg/m²",
-                                 style={"fontSize": "13px", "color": "#94A3B8", "marginTop": "8px"}),
+                                 className="result-subtitle",
+                                 style={"fontSize": "13px", "marginTop": "8px"}),
                         html.Div(f"Actual BMI: {bmi:.1f} kg/m²",
-                                 style={"fontSize": "12px", "color": "#64748B"}),
+                                 className="result-caption",
+                                 style={"fontSize": "12px"}),
                     ], md=4, className="text-center", style={"paddingTop": "20px"}),
                 ], className="mb-4"),
 
-                html.Hr(style={"borderColor": "#2A2F45", "opacity": "0.5"}),
+                html.Hr(className="result-divider"),
 
                 # Bottom row: Risk Factors + Recommendations
                 dbc.Row([
                     dbc.Col([
-                        html.Div("Risk Factors",
+                        html.Div("Risk Factors", className="result-risk-title",
                                  style={"fontSize": "14px", "fontWeight": "700",
-                                        "color": "#F87171", "marginBottom": "12px",
-                                        "fontFamily": "Manrope"}),
+                                        "marginBottom": "12px", "fontFamily": "Manrope"}),
                         html.Div([
                             html.Div([
-                                html.Span("⚠ ", style={"color": "#FBBF24"}),
+                                html.Span("⚠ ", className="result-warning-icon"),
                                 html.Span(rf)
                             ], className="rec-card") for rf in risk_factors[:4]
                         ])
                     ], md=6),
                     dbc.Col([
-                        html.Div("Recommendations",
+                        html.Div("Recommendations", className="result-rec-title",
                                  style={"fontSize": "14px", "fontWeight": "700",
-                                        "color": "#34D399", "marginBottom": "12px",
-                                        "fontFamily": "Manrope"}),
+                                        "marginBottom": "12px", "fontFamily": "Manrope"}),
                         html.Div([
                             html.Div([
-                                html.Span("✓ ", style={"color": "#34D399"}),
+                                html.Span("✓ ", className="result-success-icon"),
                                 html.Span(r)
                             ], className="rec-card") for r in recommendations[:4]
                         ])
@@ -950,6 +953,8 @@ clientside_callback(
 # IDs of all Graph components that need template switching
 _GRAPH_IDS = [
     "feature-dist-graph", "scatter-graph",
+    "donut-chart", "bmi-hist", "feat-imp", "corr-heatmap",
+    "cm-dt", "cm-knn", "pca-chart", "radar-chart", "coef-chart",
 ]
 
 # Server-side: switch Plotly templates on all static figures
@@ -967,8 +972,6 @@ def switch_chart_templates(switch_on):
         results.append(patched)
     return results
 
-
-server = app.server
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8050))

@@ -896,3 +896,57 @@ p, span, div, label { color: inherit; }
 .theme-toggle-wrap .fa-moon { color: var(--text-secondary); font-size: 14px; }
 .theme-toggle-wrap .fa-sun { color: var(--text-secondary); font-size: 14px; }
 [data-theme="light"] .theme-toggle-wrap .fa-sun { color: #FF9500; }
+
+/* ════════ LIGHT-MODE TABLE OVERRIDES ════════ */
+/* Tables rely on CSS variables for theming now that inline colors are removed */
+[data-theme="light"] .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner td {
+    background-color: #FFFFFF !important;
+    color: #1D1D1F !important;
+    border-color: #E5E5EA !important;
+}
+[data-theme="light"] .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner th {
+    background-color: rgba(0,102,204,0.06) !important;
+    color: #0066CC !important;
+    border-color: #E5E5EA !important;
+}
+[data-theme="light"] .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner tr:nth-child(odd) td {
+    background-color: #F9F9FB !important;
+}
+
+/* ════════ PREDICTION RESULT CARD CLASSES ════════ */
+.result-title {
+    color: var(--text-heading);
+}
+.result-label {
+    font-size: 12px;
+    color: var(--text-caption);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    font-weight: 600;
+}
+.result-value-accent {
+    color: var(--secondary);
+}
+.result-subtitle {
+    color: var(--text-secondary);
+}
+.result-caption {
+    color: var(--text-caption);
+}
+.result-divider {
+    border-color: var(--border-solid);
+    opacity: 0.5;
+}
+.result-risk-title {
+    color: var(--danger);
+}
+.result-rec-title {
+    color: var(--success);
+}
+.result-warning-icon {
+    color: var(--warning);
+}
+.result-success-icon {
+    color: var(--success);
+}
