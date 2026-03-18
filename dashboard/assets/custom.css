@@ -354,7 +354,7 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 0 0 3px rgba(59,154,232,0.15) !important;
 }
 
-/* Dash Dropdown Dark Override */
+/* Dash Dropdown Dark Override (Dash 4.x) */
 .Select-control {
     background-color: var(--bg-card-solid) !important;
     border-color: var(--border) !important;
@@ -367,23 +367,80 @@ h1, h2, h3, h4, h5, h6 {
 .Select-option.is-focused { background: rgba(59,154,232,0.15) !important; }
 .Select-arrow-zone .Select-arrow { border-top-color: var(--text-muted) !important; }
 
+/* Dash 4.x dropdown overrides (new component classes) */
+.dash-dropdown .Select-control,
+.dash-dropdown .Select-menu-outer,
+.dash-dropdown .Select-option,
+.dash-dropdown .Select-noresults {
+    background-color: var(--bg-card-solid) !important;
+    color: var(--text-primary) !important;
+}
+.VirtualizedSelectOption { color: var(--text-primary) !important; background: var(--bg-card-solid) !important; }
+.VirtualizedSelectFocusedOption { background: rgba(59,154,232,0.2) !important; color: #fff !important; }
+
+/* Generic fallback: any input/select/dropdown text must be visible */
+input, select, textarea,
+.css-1dimb5e-singleValue,
+.css-qbdosj-Input input,
+[class*="singleValue"],
+[class*="placeholder"],
+[class*="indicatorContainer"],
+[class*="ValueContainer"] {
+    color: var(--text-primary) !important;
+}
+[class*="control"] {
+    background-color: var(--bg-card-solid) !important;
+    border-color: var(--border) !important;
+}
+[class*="menu"] {
+    background-color: var(--bg-card-solid) !important;
+    border: 1px solid var(--border) !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4) !important;
+}
+[class*="option"] {
+    background-color: var(--bg-card-solid) !important;
+    color: var(--text-primary) !important;
+}
+[class*="option"]:hover,
+[class*="option"][class*="focused"] {
+    background-color: rgba(59,154,232,0.2) !important;
+    color: #fff !important;
+}
+[class*="indicatorSeparator"] {
+    background-color: var(--border) !important;
+}
+[class*="dropdownIndicator"] svg,
+[class*="clearIndicator"] svg {
+    fill: var(--text-muted) !important;
+}
+
 /* Dash Slider Dark Override */
 .rc-slider-track { background-color: var(--primary) !important; }
 .rc-slider-handle {
     border-color: var(--primary) !important;
     background: var(--bg-card-solid) !important;
     box-shadow: 0 2px 6px rgba(0,0,0,0.3) !important;
+    width: 16px !important; height: 16px !important;
+    margin-top: -6px !important;
 }
 .rc-slider-rail { background-color: var(--border) !important; }
 .rc-slider-dot { background: var(--border) !important; border-color: var(--border) !important; }
-.rc-slider-mark-text { color: var(--text-muted) !important; font-size: 11px !important; }
+.rc-slider-mark-text { color: var(--text-secondary) !important; font-size: 12px !important; font-weight: 500 !important; }
 
-/* Radio Items */
+/* Radio Items & Checkboxes */
 .form-check-input:checked {
     background-color: var(--primary) !important;
     border-color: var(--primary) !important;
 }
-.form-check-label { color: var(--text-secondary) !important; font-size: 14px !important; }
+.form-check-input {
+    border-color: var(--text-muted) !important;
+    background-color: var(--bg-card-solid) !important;
+}
+.form-check-label {
+    color: var(--text-primary) !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+}
 
 /* --- Accordion --- */
 .accordion-item {
@@ -524,3 +581,21 @@ h1, h2, h3, h4, h5, h6 {
 
 /* --- Loading Overlay --- */
 ._dash-loading { background: rgba(15,17,23,0.5) !important; }
+
+/* --- Layout Max Width & Centering --- */
+.container-fluid {
+    max-width: 1440px !important;
+    margin: 0 auto !important;
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+}
+
+/* --- Tab Content Padding --- */
+.tab-pane { padding-top: 8px; }
+
+/* --- Better Graph Padding --- */
+.js-plotly-plot { border-radius: 8px; }
+
+/* --- Ensure text contrast on dark --- */
+p, span, div, label { color: inherit; }
+.text-muted { color: var(--text-muted) !important; }

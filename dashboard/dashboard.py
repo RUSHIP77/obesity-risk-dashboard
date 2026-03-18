@@ -208,7 +208,8 @@ fig_feat_imp = go.Figure(go.Bar(
 ))
 fig_feat_imp.update_layout(title="Decision Tree — Feature Importance (Top 12)",
                             height=450, showlegend=False,
-                            xaxis_title="Importance Score")
+                            xaxis_title="Importance Score",
+                            margin=dict(l=180, r=16, t=56, b=48))
 
 # Correlation heatmap
 corr_vals = df[numeric_features].corr().values
@@ -558,11 +559,15 @@ tab5 = dbc.Container([
 # Main Layout
 # ============================================================
 app.layout = html.Div([
-    dbc.NavbarSimple(
-        brand="Childhood Obesity Risk Screening Dashboard",
-        brand_style={"fontSize": "1.4rem", "fontWeight": "700"},
-        color="dark", dark=True, className="mb-0"
-    ),
+    html.Div([
+        html.H1("Childhood Obesity Risk Screening Dashboard",
+                className="text-gradient",
+                style={"fontSize": "1.6rem", "fontWeight": "700",
+                       "textAlign": "center", "padding": "20px 0 16px",
+                       "margin": "0", "fontFamily": "Manrope, sans-serif"}),
+    ], style={"borderBottom": "1px solid #2A2F45",
+              "background": "rgba(15,17,23,0.85)",
+              "backdropFilter": "blur(16px)"}),
     dbc.Tabs([
         dbc.Tab(tab1, label="Overview", tab_id="tab-overview",
                 label_style={"fontFamily": "Inter, sans-serif"}),
