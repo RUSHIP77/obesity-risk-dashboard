@@ -56,7 +56,6 @@ target_map = {
     'Overweight_Level_I': 2, 'Overweight_Level_II': 3,
     'Obesity_Type_I': 4, 'Obesity_Type_II': 5, 'Obesity_Type_III': 6
 }
-label_mapping = target_map
 reverse_label_mapping = {v: k for k, v in target_map.items()}
 df_processed['NObeyesdad_encoded'] = df_processed['NObeyesdad'].map(target_map)
 
@@ -156,7 +155,7 @@ df_processed.to_csv('outputs/data/processed_data.csv', index=False)
 joblib.dump(X_full.columns.tolist(), 'outputs/models/feature_names_classification.pkl')
 joblib.dump(X_lifestyle.columns.tolist(), 'outputs/models/feature_names_regression.pkl')
 joblib.dump(X_cluster.columns.tolist(), 'outputs/models/feature_names_clustering.pkl')
-joblib.dump(label_mapping, 'outputs/models/label_mapping.pkl')
+joblib.dump(target_map, 'outputs/models/label_mapping.pkl')
 joblib.dump(reverse_label_mapping, 'outputs/models/reverse_label_mapping.pkl')
 
 joblib.dump((X_train_cls, X_test_cls, y_train_cls, y_test_cls), 'outputs/data/classification_splits.pkl')

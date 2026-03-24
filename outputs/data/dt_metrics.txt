@@ -1,6 +1,6 @@
 Decision Tree Results
 ========================================
-Best max_depth: 16
+Best max_depth: 15
 Accuracy: 0.7352
 Macro F1: 0.7318
 Weighted F1: 0.7380

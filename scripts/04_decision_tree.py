@@ -33,21 +33,22 @@ print("\n[4.2] Cross-validation for optimal max_depth...")
 depths = range(2, 25)
 cv_scores = []
 for d in depths:
-    dt = DecisionTreeClassifier(max_depth=d, random_state=42)
-    scores = cross_val_score(dt, X_train_cls, y_train_cls, cv=5, scoring='accuracy')
+    dt = DecisionTreeClassifier(max_depth=d, random_state=42,
+                                min_samples_split=10, min_samples_leaf=5)
+    scores = cross_val_score(dt, X_train_cls, y_train_cls, cv=5, scoring='f1_macro')
     cv_scores.append(scores.mean())
-    print(f"  depth={d}: CV accuracy={scores.mean():.4f}")
+    print(f"  depth={d}: CV Macro F1={scores.mean():.4f}")
 
 best_depth = list(depths)[np.argmax(cv_scores)]
-print(f"\nBest max_depth: {best_depth} with CV accuracy: {max(cv_scores):.4f}")
+print(f"\nBest max_depth: {best_depth} with CV Macro F1: {max(cv_scores):.4f}")
 
 # Chart 12: Depth Tuning
 fig, ax = plt.subplots(figsize=(10, 6))
 ax.plot(list(depths), cv_scores, 'b-o', markersize=5)
 ax.plot(best_depth, max(cv_scores), 'ro', markersize=12, label=f'Best depth={best_depth}')
 ax.set_xlabel('Max Depth')
-ax.set_ylabel('Cross-Validation Accuracy')
-ax.set_title('Decision Tree: Cross-Validation Accuracy vs Max Depth')
+ax.set_ylabel('Cross-Validation Macro F1')
+ax.set_title('Decision Tree: Cross-Validation Macro F1 vs Max Depth')
 ax.legend()
 ax.grid(True, alpha=0.3)
 plt.tight_layout()

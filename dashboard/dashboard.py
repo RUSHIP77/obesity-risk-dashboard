@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 import joblib
 import os
+import traceback
 from sklearn.metrics import confusion_matrix
 
 # ============================================================
@@ -132,6 +133,16 @@ def clean_feature_name(name):
             .replace('Activity Screen Ratio', 'Activity/Screen')
             .replace('Dietary Risk Score', 'Diet Risk Score'))
 
+SHORT_LABELS = {
+    'Insufficient Weight': 'Insuff. Weight',
+    'Normal Weight': 'Normal Weight',
+    'Overweight Level I': 'Overweight I',
+    'Overweight Level II': 'Overweight II',
+    'Obesity Type I': 'Obesity I',
+    'Obesity Type II': 'Obesity II',
+    'Obesity Type III': 'Obesity III',
+}
+
 RISK_CSS = {
     'Insufficient_Weight': 'risk-low', 'Normal_Weight': 'risk-low',
     'Overweight_Level_I': 'risk-moderate', 'Overweight_Level_II': 'risk-moderate',
@@ -163,6 +174,7 @@ app.index_string = '''
     <title>{%title%}</title>
     {%favicon%}
     {%css%}
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <script>
         (function() {
             var theme = localStorage.getItem('dashTheme') || 'dark';
@@ -195,7 +207,7 @@ kpi_row = dbc.Row([
     ], className="kpi-card fade-in-d1"), xs=6, md=3),
     dbc.Col(html.Div([
         html.Div("🔬", className="kpi-icon teal"),
-        html.Div("16", className="kpi-value"),
+        html.Div(str(len(feature_names_cls)), className="kpi-value"),
         html.Div("Features", className="kpi-label"),
     ], className="kpi-card fade-in-d2"), xs=6, md=3),
     dbc.Col(html.Div([
@@ -342,13 +354,19 @@ with open(os.path.join(PROJECT, 'outputs/data/knn_metrics.txt'), 'r') as f:
 def _parse_accuracy(text):
     for line in text.splitlines():
         if 'Accuracy' in line and ':' in line:
-            return float(line.split(':')[-1].strip())
+            try:
+                return float(line.split(':')[-1].strip())
+            except ValueError:
+                return 0.0
     return 0.0
 
 def _parse_r2(text):
     for line in text.splitlines():
         if 'R²' in line and ':' in line:
-            return float(line.split(':')[-1].strip())
+            try:
+                return float(line.split(':')[-1].strip())
+            except ValueError:
+                return 0.0
     return 0.0
 
 dt_acc_val = _parse_accuracy(dt_metrics_text)
@@ -710,16 +728,6 @@ app.layout = html.Div([
 @app.callback(Output('feature-dist-graph', 'figure'),
               [Input('feature-select', 'value'), Input('color-mode-switch', 'value')])
 def update_feature_dist(feature, theme_on):
-    # Use abbreviated labels for x-axis readability
-    SHORT_LABELS = {
-        'Insufficient Weight': 'Insuff. Weight',
-        'Normal Weight': 'Normal Weight',
-        'Overweight Level I': 'Overweight I',
-        'Overweight Level II': 'Overweight II',
-        'Obesity Type I': 'Obesity I',
-        'Obesity Type II': 'Obesity II',
-        'Obesity Type III': 'Obesity III',
-    }
     fig = px.box(df, x='Obesity_Label', y=feature,
                  category_orders={'Obesity_Label': LABEL_ORDER},
                  color='Obesity_Label', color_discrete_map=LABEL_COLORS,
@@ -778,6 +786,13 @@ def predict(n_clicks, gender, age, height, weight, fh, favc,
         if height <= 0 or weight <= 0:
             return dbc.Alert("Height and weight must be greater than zero.", color="warning")
 
+        if not (14 <= age <= 65):
+            return dbc.Alert("Age must be between 14 and 65.", color="warning")
+        if not (1.0 <= height <= 2.2):
+            return dbc.Alert("Height must be between 1.0 and 2.2 meters.", color="warning")
+        if not (30 <= weight <= 200):
+            return dbc.Alert("Weight must be between 30 and 200 kg.", color="warning")
+
         # Encode
         gender_enc = 1 if gender == 'Male' else 0
         fh_enc = 1 if fh == 'yes' else 0
@@ -794,36 +809,23 @@ def predict(n_clicks, gender, age, height, weight, fh, favc,
 
         bmi = weight / (height ** 2)
 
-        # Classification (17 lifestyle-only features, no BMI/Height/Weight)
-        cls_dict = {
+        # Base features shared across all models
+        base_features = {
             'Gender': gender_enc, 'Age': age,
             'family_history_with_overweight': fh_enc, 'FAVC': favc_enc,
             'FCVC': fcvc, 'NCP': ncp, 'CAEC': caec_enc, 'SMOKE': smoke_enc,
             'CH2O': ch2o, 'SCC': scc_enc, 'FAF': faf, 'TUE': tue, 'CALC': calc_enc,
+        }
+        mtrans_features = {
             'MTRANS_Bike': mtrans_bike, 'MTRANS_Motorbike': mtrans_motorbike,
-            'MTRANS_Public_Transportation': mtrans_public, 'MTRANS_Walking': mtrans_walking
+            'MTRANS_Public_Transportation': mtrans_public, 'MTRANS_Walking': mtrans_walking,
         }
-        cls_features = pd.DataFrame([cls_dict])[feature_names_cls]
 
-        # Regression
-        reg_dict = {
-            'Gender': gender_enc, 'Age': age,
-            'family_history_with_overweight': fh_enc, 'FAVC': favc_enc,
-            'FCVC': fcvc, 'NCP': ncp, 'CAEC': caec_enc, 'SMOKE': smoke_enc,
-            'CH2O': ch2o, 'SCC': scc_enc, 'FAF': faf, 'TUE': tue, 'CALC': calc_enc,
-            'MTRANS_Bike': mtrans_bike, 'MTRANS_Motorbike': mtrans_motorbike,
-            'MTRANS_Public_Transportation': mtrans_public, 'MTRANS_Walking': mtrans_walking
-        }
-        reg_features = pd.DataFrame([reg_dict])[feature_names_reg]
-
-        # Clustering
-        cluster_dict = {
-            'Gender': gender_enc, 'Age': age,
-            'family_history_with_overweight': fh_enc, 'FAVC': favc_enc,
-            'FCVC': fcvc, 'NCP': ncp, 'CAEC': caec_enc, 'SMOKE': smoke_enc,
-            'CH2O': ch2o, 'SCC': scc_enc, 'FAF': faf, 'TUE': tue, 'CALC': calc_enc
-        }
-        cluster_features = pd.DataFrame([cluster_dict])[feature_names_cluster]
+        # Classification & regression include MTRANS dummies; clustering does not
+        full_features = {**base_features, **mtrans_features}
+        cls_features = pd.DataFrame([full_features])[feature_names_cls]
+        reg_features = pd.DataFrame([full_features])[feature_names_reg]
+        cluster_features = pd.DataFrame([base_features])[feature_names_cluster]
 
         # Predict
         dt_pred = dt_model.predict(cls_features)[0]
@@ -953,6 +955,7 @@ def predict(n_clicks, gender, age, height, weight, fh, favc,
         return result
 
     except Exception:
+        traceback.print_exc()
         return dbc.Alert("An error occurred while processing your input. Please check all fields and try again.", color="danger")
 
 
@@ -976,8 +979,8 @@ clientside_callback(
 )
 
 # IDs of all Graph components that need template switching
+# feature-dist-graph and scatter-graph excluded — their own callbacks handle template switching
 _GRAPH_IDS = [
-    "feature-dist-graph", "scatter-graph",
     "donut-chart", "bmi-hist", "feat-imp", "corr-heatmap",
     "cm-dt", "cm-knn", "pca-chart", "radar-chart", "coef-chart",
 ]

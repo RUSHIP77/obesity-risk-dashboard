@@ -29,16 +29,19 @@ cluster_feature_names = joblib.load('outputs/models/feature_names_clustering.pkl
 print(f"Clustering data shape: {X_cluster_scaled.shape}")
 
 # ============================================================
-# Step 6.2: Elbow Method
+# Step 6.2: Elbow Method + Silhouette Analysis (single loop)
 # ============================================================
-print("\n[6.2] Elbow Method...")
+print("\n[6.2] Elbow Method + Silhouette Analysis...")
 K_range = range(2, 11)
 inertias = []
+silhouette_scores = []
 for k in K_range:
     km = KMeans(n_clusters=k, random_state=42, n_init=10)
-    km.fit(X_cluster_scaled)
+    labels = km.fit_predict(X_cluster_scaled)
     inertias.append(km.inertia_)
-    print(f"  k={k}: Inertia={km.inertia_:.2f}")
+    sil = silhouette_score(X_cluster_scaled, labels)
+    silhouette_scores.append(sil)
+    print(f"  k={k}: Inertia={km.inertia_:.2f}, Silhouette={sil:.4f}")
 
 # Chart 18: Elbow Plot
 fig, ax = plt.subplots(figsize=(10, 6))
@@ -52,24 +55,19 @@ plt.savefig('outputs/charts/18_kmeans_elbow.png', dpi=150)
 plt.close()
 
 # ============================================================
-# Step 6.3: Silhouette Analysis
+# Step 6.3: Silhouette Analysis (results from combined loop)
 # ============================================================
-print("\n[6.3] Silhouette Analysis...")
-silhouette_scores = []
-for k in K_range:
-    km = KMeans(n_clusters=k, random_state=42, n_init=10)
-    labels = km.fit_predict(X_cluster_scaled)
-    sil = silhouette_score(X_cluster_scaled, labels)
-    silhouette_scores.append(sil)
-    print(f"  k={k}: Silhouette Score = {sil:.4f}")
+print("\n[6.3] Silhouette Analysis Summary...")
 
 best_k_cluster = list(K_range)[np.argmax(silhouette_scores)]
 print(f"\nBest k by silhouette: {best_k_cluster} (score: {max(silhouette_scores):.4f})")
 
-# Use k=4 if best_k is 2 (since 2 clusters isn't very informative)
+# Domain knowledge override: k=2 splits data into just "high/low" which is not
+# actionable for risk profiling. k=4 provides distinct behavioral groups (sedentary,
+# active, poor diet, moderate) that map to meaningful intervention strategies.
 if best_k_cluster == 2:
     best_k_cluster = 4
-    print(f"Overriding to k={best_k_cluster} for more meaningful clusters")
+    print(f"Overriding to k={best_k_cluster} — 2 clusters too coarse for risk profiling")
 
 # Chart 19: Silhouette Scores
 fig, ax = plt.subplots(figsize=(10, 6))
@@ -150,11 +148,17 @@ for i in range(best_k_cluster):
     favc_val = profile['FAVC']
     bmi_val = profile['BMI']
 
-    if faf_val == cluster_profiles['FAF'].min() and tue_val >= cluster_profiles['TUE'].median():
+    faf_min = cluster_profiles['FAF'].min()
+    faf_max = cluster_profiles['FAF'].max()
+    tue_med = cluster_profiles['TUE'].median()
+    fcvc_med = cluster_profiles['FCVC'].median()
+    favc_med = cluster_profiles['FAVC'].median()
+
+    if np.isclose(faf_val, faf_min) and tue_val >= tue_med:
         name = "High-Risk Sedentary"
-    elif faf_val == cluster_profiles['FAF'].max() and fcvc_val >= cluster_profiles['FCVC'].median():
+    elif np.isclose(faf_val, faf_max) and fcvc_val >= fcvc_med:
         name = "Active Healthy"
-    elif favc_val >= cluster_profiles['FAVC'].median() and fcvc_val <= cluster_profiles['FCVC'].median():
+    elif favc_val >= favc_med and fcvc_val <= fcvc_med:
         name = "Poor Diet Risk"
     else:
         name = "Moderate Risk"

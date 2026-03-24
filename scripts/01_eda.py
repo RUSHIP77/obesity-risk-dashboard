@@ -74,7 +74,6 @@ print("\nSaved dataset_summary.txt")
 # ============================================================
 print("\n[1.3] Feature Engineering for EDA...")
 df['BMI'] = df['Weight'] / (df['Height'] ** 2)
-df['Activity_Screen_Ratio'] = df['FAF'] / (df['TUE'] + 0.1)
 
 print("\nBMI Statistics by Obesity Class:")
 bmi_stats = df.groupby('NObeyesdad')['BMI'].describe()
@@ -126,6 +125,8 @@ df_encoded['CAEC'] = df_encoded['CAEC'].map({'no': 0, 'Sometimes': 1, 'Frequentl
 df_encoded['SMOKE'] = df_encoded['SMOKE'].map({'no': 0, 'yes': 1})
 df_encoded['SCC'] = df_encoded['SCC'].map({'no': 0, 'yes': 1})
 df_encoded['CALC'] = df_encoded['CALC'].map({'no': 0, 'Sometimes': 1, 'Frequently': 2, 'Always': 3})
+# MTRANS encoded as ordinal here for correlation heatmap only.
+# The preprocessing pipeline (02_preprocessing.py) uses one-hot encoding for modeling.
 df_encoded['MTRANS'] = df_encoded['MTRANS'].map({
     'Walking': 0, 'Bike': 1, 'Motorbike': 2, 'Public_Transportation': 3, 'Automobile': 4
 })

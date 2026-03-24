@@ -33,20 +33,20 @@ k_values = list(range(1, 31, 2))
 cv_scores_knn = []
 for k in k_values:
     knn = KNeighborsClassifier(n_neighbors=k)
-    scores = cross_val_score(knn, X_train_cls_scaled, y_train_cls, cv=5, scoring='accuracy')
+    scores = cross_val_score(knn, X_train_cls_scaled, y_train_cls, cv=5, scoring='f1_macro')
     cv_scores_knn.append(scores.mean())
-    print(f"  k={k}: CV accuracy={scores.mean():.4f}")
+    print(f"  k={k}: CV Macro F1={scores.mean():.4f}")
 
 best_k = k_values[np.argmax(cv_scores_knn)]
-print(f"\nBest k: {best_k} with CV accuracy: {max(cv_scores_knn):.4f}")
+print(f"\nBest k: {best_k} with CV Macro F1: {max(cv_scores_knn):.4f}")
 
 # Chart 16: k Tuning
 fig, ax = plt.subplots(figsize=(10, 6))
 ax.plot(k_values, cv_scores_knn, 'b-o', markersize=5)
 ax.plot(best_k, max(cv_scores_knn), 'ro', markersize=12, label=f'Best k={best_k}')
 ax.set_xlabel('Number of Neighbors (k)')
-ax.set_ylabel('Cross-Validation Accuracy')
-ax.set_title('KNN: Cross-Validation Accuracy vs Number of Neighbors (k)')
+ax.set_ylabel('Cross-Validation Macro F1')
+ax.set_title('KNN: Cross-Validation Macro F1 vs Number of Neighbors (k)')
 ax.legend()
 ax.grid(True, alpha=0.3)
 plt.tight_layout()

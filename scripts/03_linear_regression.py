@@ -66,6 +66,8 @@ with open('outputs/data/ols_summary.txt', 'w') as f:
 print("\n[3.5] Variance Inflation Factors...")
 vif_data = pd.DataFrame()
 vif_data["Feature"] = feature_names_reg
+assert len(feature_names_reg) == X_train_reg_scaled.shape[1], \
+    f"Feature names ({len(feature_names_reg)}) don't match data columns ({X_train_reg_scaled.shape[1]})"
 vif_data["VIF"] = [variance_inflation_factor(X_train_reg_scaled, i) for i in range(X_train_reg_scaled.shape[1])]
 vif_data = vif_data.sort_values('VIF', ascending=False)
 print(vif_data)

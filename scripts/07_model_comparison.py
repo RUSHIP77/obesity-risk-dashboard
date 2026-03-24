@@ -28,7 +28,12 @@ with open('outputs/data/knn_metrics.txt', 'r') as f:
 def parse_metric(text, keyword):
     for line in text.split('\n'):
         if keyword in line:
-            return float(line.split(':')[-1].strip())
+            try:
+                return float(line.split(':')[-1].strip())
+            except ValueError:
+                print(f"Warning: Could not parse '{keyword}' from line: {line}")
+                return None
+    print(f"Warning: '{keyword}' not found in metrics text")
     return None
 
 r2 = parse_metric(reg_text, 'R²')
@@ -113,8 +118,10 @@ plt.close()
 # ============================================================
 print("\n[7.4] Project Summary")
 
-best_classifier = "Decision Tree" if dt_acc > knn_acc else "KNN"
-best_acc = max(dt_acc, knn_acc)
+# Use Macro F1 as the primary comparison metric for multiclass classification —
+# accuracy can be misleading with imbalanced classes.
+best_classifier = "Decision Tree" if dt_f1_macro > knn_f1_macro else "KNN"
+best_f1 = max(dt_f1_macro, knn_f1_macro)
 
 summary = []
 summary.append("=" * 60)
@@ -122,9 +129,9 @@ summary.append("PROJECT SUMMARY: Predicting Childhood Obesity via Lifestyle Fact
 summary.append("=" * 60)
 summary.append(f"\n1. Linear Regression R² = {r2:.4f}")
 summary.append(f"   → Lifestyle factors explain {r2*100:.1f}% of BMI variance")
-summary.append(f"\n2. Best Classifier: {best_classifier}")
-summary.append(f"   → Accuracy: {best_acc*100:.1f}%")
-summary.append(f"   → Decision Tree Accuracy: {dt_acc*100:.1f}%, KNN Accuracy: {knn_acc*100:.1f}%")
+summary.append(f"\n2. Best Classifier: {best_classifier} (by Macro F1)")
+summary.append(f"   → Macro F1: {best_f1:.4f}")
+summary.append(f"   → Decision Tree: Acc={dt_acc*100:.1f}%, F1={dt_f1_macro:.4f} | KNN: Acc={knn_acc*100:.1f}%, F1={knn_f1_macro:.4f}")
 summary.append(f"\n3. K-Means identified {best_k_cluster} distinct behavioral risk groups")
 summary.append(f"\n4. Top 3 Modifiable Risk Factors (from Decision Tree feature importance):")
 importances = dt_model.feature_importances_

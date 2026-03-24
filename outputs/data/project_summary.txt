@@ -5,14 +5,13 @@ PROJECT SUMMARY: Predicting Childhood Obesity via Lifestyle Factors
 1. Linear Regression R² = 0.4662
    → Lifestyle factors explain 46.6% of BMI variance
 
-2. Best Classifier: KNN
-   → Accuracy: 80.1%
-   → Decision Tree Accuracy: 73.5%, KNN Accuracy: 80.1%
+2. Best Classifier: KNN (by Macro F1)
+   → Macro F1: 0.7943
+   → Decision Tree: Acc=73.5%, F1=0.7318 | KNN: Acc=80.1%, F1=0.7943
 
 3. K-Means identified 4 distinct behavioral risk groups
 
-4. Top 3 Risk Factors (from Decision Tree feature importance — used because
-   tree-based models provide direct feature importance; KNN does not):
-   1. FCVC — Vegetable consumption frequency (importance: 0.1809)
-   2. TUE — Screen time / technology use (importance: 0.1686)
-   3. Age (importance: 0.1320) — Note: Age is non-modifiable; top modifiable factors are FCVC and TUE
+4. Top 3 Modifiable Risk Factors (from Decision Tree feature importance):
+   1. FCVC (importance: 0.1809)
+   2. TUE (importance: 0.1686)
+   3. Age (importance: 0.1320)
