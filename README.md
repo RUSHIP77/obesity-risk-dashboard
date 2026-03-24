@@ -1,7 +1,5 @@
 # Predicting Childhood Obesity via Lifestyle Factors
-## DSC 510 Final Project — Group 2
-### Rushi Patel, Raffey Akram, Vishnu Doddapaneni
-### Professor Casey Bennett | DePaul University | Winter 2025-2026
+### By Rushi Patel
 
 ## Project Overview
 This project uses machine learning to predict obesity risk based on lifestyle factors,

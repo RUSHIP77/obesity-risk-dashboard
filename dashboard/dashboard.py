@@ -715,8 +715,7 @@ app.layout = html.Div([
                 label_style={"fontFamily": "Inter, sans-serif"}),
     ], className="px-3"),
     html.Div([
-        html.P("DSC 510 Final Project | Group 2: Rushi Patel, Raffey Akram, Vishnu Doddapaneni | "
-               "Prof. Casey Bennett | DePaul University"),
+        html.P("Built by Rushi Patel"),
         html.P("This tool is for educational and research purposes only. Not a substitute for medical advice.",
                style={"fontSize": "11px"}),
     ], className="dashboard-footer"),
