@@ -31,10 +31,8 @@ def parse_metric(text, keyword):
             try:
                 return float(line.split(':')[-1].strip())
             except ValueError:
-                print(f"Warning: Could not parse '{keyword}' from line: {line}")
-                return None
-    print(f"Warning: '{keyword}' not found in metrics text")
-    return None
+                raise ValueError(f"Could not parse '{keyword}' from line: {line}")
+    raise ValueError(f"'{keyword}' not found in metrics text. Run the upstream script first.")
 
 r2 = parse_metric(reg_text, 'R²')
 dt_acc = parse_metric(dt_text, 'Accuracy')
